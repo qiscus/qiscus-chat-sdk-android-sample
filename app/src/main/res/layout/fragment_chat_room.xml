@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/empty_chat"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="#FAFAFA"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/imageView3"
+                android:layout_width="250dp"
+                android:layout_height="250dp"
+                app:srcCompat="@drawable/empty_chat" />
+
+            <TextView
+                android:id="@+id/textView8"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="10dp"
+                android:gravity="center"
+                android:text="Send a message!"
+                android:textColor="#666666"
+                android:textSize="24sp" />
+
+            <TextView
+                android:id="@+id/textView9"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="60dp"
+                android:layout_marginRight="60dp"
+                android:gravity="center"
+                android:text="Great discussion start from greeting each others first"
+                android:textSize="18sp" />
+        </LinearLayout>
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recyclerview"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:visibility="visible" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1.6dp"
+            android:alpha="0.5"
+            android:background="@color/qiscus_light_grey" />
+
+        <LinearLayout
+            android:id="@+id/field_message_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="4dp">
+
+            <ImageView
+                android:id="@+id/button_add_image"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:layout_gravity="bottom"
+                android:background="@drawable/bt_qiscus_selector_grey"
+                android:padding="8dp"
+                android:src="@drawable/ic_attach" />
+
+            <EditText
+                android:id="@+id/field_message"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_weight="1"
+                android:background="@android:color/transparent"
+                android:hint="@string/qiscus_hint_message"
+                android:imeOptions="actionSend"
+                android:inputType="textLongMessage|textAutoCorrect|textCapSentences|textMultiLine"
+                android:maxLines="4"
+                android:nextFocusRight="@+id/button_send"
+                android:padding="8dp"
+                android:textColor="@color/qiscus_primary_text"
+                android:textColorHint="@color/qiscus_secondary_text"
+                android:textSize="16sp" />
+
+            <ImageView
+                android:id="@+id/button_send"
+                android:layout_width="46dp"
+                android:layout_height="46dp"
+                android:layout_gravity="bottom"
+                android:background="@drawable/bt_qiscus_selector_grey"
+                android:padding="8dp"
+                android:src="@drawable/ic_send_active" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="-7dp"
+        android:indeterminate="true"
+        android:visibility="gone" />
+
+</RelativeLayout>

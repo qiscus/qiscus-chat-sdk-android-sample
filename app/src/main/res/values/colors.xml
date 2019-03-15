@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#94CA62</color>
+    <color name="colorPrimaryLight">#C5CAE9</color>
+    <color name="emoji_divider">#1F000000</color>
+
+    <color name="qiscus_white">#FFFFFF</color>
+    <color name="qiscus_divider">#B6B6B6</color>
+    <color name="qiscus_left_bubble">#D0D0D0</color>
+    <color name="qiscus_right_bubble">#FFFFFF</color>
+    <color name="qiscus_light_grey">#D8D8D8</color>
+    <color name="qiscus_primary_text">#2C2C36</color>
+    <color name="qiscus_secondary_text">#979797</color>
+    <color name="qiscus_red">#d32f2f</color>
+    <color name="qiscus_green">#94CA62</color>
+    <color name="bubble_left">#E8E8E8</color>
+
+    <color name="pending_message">#757575</color>
+    <color name="send_message">#757575</color>
+    <color name="deliver_message">#757575</color>
+    <color name="read_message">#94CA62</color>
+
+</resources>

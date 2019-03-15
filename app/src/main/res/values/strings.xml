@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">My Chat UI</string>
+
+    <string name="qiscus_hint_message">Type your message</string>
+    <string name="qiscus_group_member_closing">and you</string>
+    <string name="qiscus_group_member_only_you">Only you</string>
+    <string name="qiscus_corrupted_file">Can not read file, please make sure that is not corrupted file!</string>
+    <string name="qiscus_failed_download_file">Failed to download file!</string>
+    <string name="qiscus_permission_message">If you not grant permission, the apps may not be working properly. So please grant the permission for better user experienced.</string>
+    <string name="qiscus_grant">Grant Permission</string>
+    <string name="qiscus_denny">Denny Permission</string>
+    <string name="qiscus_permission_request_title">Please grant permissions to make apps working properly!</string>
+    <string name="qiscus_message_too_far">Sorry, Message too far to load it!</string>
+    <string name="failed_to_delete_messages">Failed to delete messages</string>
+    <string name="qiscus_add_a_caption">Add caption to your image</string>
+    <string name="cancel">Cancel</string>
+    <string name="send">Send</string>
+    <string name="qiscus_chat_error_failed_open_picture">Failed to open picture!</string>
+    <string name="qiscus_chat_error_failed_read_picture">Failed to read picture data!</string>
+    <string name="qiscus_chat_error_failed_open_file">Failed to open file!</string>
+</resources>
