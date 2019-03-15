@@ -4,11 +4,19 @@ This repo is aimed to give an example on how to build a chat UI using Qiscus Cha
 
 ## Requirements
 
-
+ - [JDK 1.8](http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html?printOnly=1)
+ - [Android Studio 3](https://developer.android.com/studio/index.html)
+ - minSdkVersion 16
+ - targetSdkVersion 28
 
 ## How to Run
-
-
+ - Android Studio  : Menu Build -> Clean Project -> Run (Shift + F10)
+ - Terminal
+ 
+ ```
+ $cd /path/to/project
+ $./gradlew assembleDebug
+ ```
 
 ## Contribution
 Qiscus Chat SDK Sample UI is fully open-source. All contributions and suggestions are welcome!
