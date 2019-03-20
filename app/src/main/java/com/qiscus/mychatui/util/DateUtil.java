@@ -16,7 +16,7 @@ public final class DateUtil {
     private static DateFormat fullDateFormat;
 
     static {
-        fullDateFormat = new SimpleDateFormat("dd MMM yyyy 'at' hh:mm a");
+        fullDateFormat = new SimpleDateFormat("EEEE, MMMM dd, yyyy");
     }
 
     public static String toFullDate(Date date) {
@@ -88,7 +88,7 @@ public final class DateUtil {
         }
         String yearsText = years.format(date);
         String time = getTimeStringFromDate(date);
-        String all = dayText + " " + monthText + " " + yearsText + " " + time;
+        String all = dayText + " " + monthText + " " + yearsText;
         return all;
     }
 

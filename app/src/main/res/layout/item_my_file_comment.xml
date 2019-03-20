@@ -1,89 +1,114 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="12dp">
+    android:orientation="vertical">
 
     <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginRight="10dp"
-        android:layout_weight="1"
-        android:gravity="bottom|end"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/date"
+            android:id="@+id/dateOfMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:ellipsize="end"
-            android:gravity="end"
-            android:maxLines="1"
-            android:text="10:00"
-            android:textColor="@color/qiscus_secondary_text"
+            android:background="@drawable/rounded_date"
+            android:gravity="center"
+            android:padding="10dp"
+            android:text="Date"
             android:textSize="12sp" />
-
-        <ImageView
-            android:id="@+id/state"
-            android:layout_width="18dp"
-            android:layout_height="16dp"
-            android:layout_marginStart="4dp"
-            android:layout_marginLeft="4dp" />
     </LinearLayout>
 
     <LinearLayout
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="12dp"
-        android:layout_marginRight="12dp"
-        android:layout_weight="2"
-        android:background="@drawable/qiscus_rounded_second_chat_bg"
         android:orientation="horizontal"
-        android:padding="8dp">
+        android:padding="12dp">
 
         <LinearLayout
-            android:layout_width="4dp"
-            android:layout_height="30dp"
-            android:background="@color/qiscus_green"
-            android:orientation="vertical"
-            android:padding="8dp"></LinearLayout>
-
-        <TextView
-            android:id="@+id/sender"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:gravity="end"
-            android:maxLines="1"
-            android:textSize="12sp"
-            android:visibility="gone" />
+            android:layout_marginRight="10dp"
+            android:layout_weight="1"
+            android:gravity="bottom|end"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/date"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:ellipsize="end"
+                android:gravity="end"
+                android:maxLines="1"
+                android:text="10:00"
+                android:textColor="@color/qiscus_secondary_text"
+                android:textSize="12sp" />
+
+            <ImageView
+                android:id="@+id/state"
+                android:layout_width="18dp"
+                android:layout_height="16dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginLeft="4dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="12dp"
+            android:layout_marginRight="12dp"
+            android:layout_weight="2"
+            android:background="@drawable/qiscus_rounded_second_chat_bg"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <LinearLayout
+                android:layout_width="4dp"
+                android:layout_height="30dp"
+                android:background="@color/qiscus_green"
+                android:orientation="vertical"
+                android:padding="8dp"></LinearLayout>
+
+            <TextView
+                android:id="@+id/sender"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:gravity="end"
+                android:maxLines="1"
+                android:textSize="12sp"
+                android:visibility="gone" />
+
+            <ImageView
+                android:id="@+id/ic_file"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/ic_file" />
+
+            <TextView
+                android:id="@+id/file_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:layout_marginTop="5dp"
+                android:autoLink="all"
+                android:linksClickable="true"
+                android:textColor="@color/qiscus_primary_text"
+                android:textColorLink="@color/qiscus_primary_text"
+                android:textSize="14sp" />
+
+        </LinearLayout>
 
         <ImageView
-            android:id="@+id/ic_file"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:src="@drawable/ic_file" />
-
-        <TextView
-            android:id="@+id/file_name"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_marginTop="5dp"
-            android:autoLink="all"
-            android:linksClickable="true"
-            android:textColor="@color/qiscus_primary_text"
-            android:textColorLink="@color/qiscus_primary_text"
-            android:textSize="14sp" />
+            android:id="@+id/avatar"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:visibility="gone" />
 
     </LinearLayout>
-
-    <ImageView
-        android:id="@+id/avatar"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:visibility="gone" />
-
 </LinearLayout>
+

@@ -21,6 +21,7 @@ import com.qiscus.sdk.chat.core.QiscusCore;
 import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
 import com.qiscus.sdk.chat.core.data.model.QiscusComment;
 import com.qiscus.sdk.chat.core.util.QiscusAndroidUtil;
+import com.qiscus.sdk.chat.core.util.QiscusDateUtil;
 
 import org.json.JSONObject;
 
@@ -83,9 +84,9 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
                     JSONObject content = obj.getJSONObject("content");
                     String url = content.getString("url");
 
-                    if (getMimeType(url).contains("image")){
+                    if (getMimeType(url).contains("image")) {
                         return comment.isMyComment() ? TYPE_MY_IMAGE : TYPE_OPPONENT_IMAGE;
-                    }else{
+                    } else {
                         return comment.isMyComment() ? TYPE_MY_FILE : TYPE_OPPONENT_FILE;
                     }
                 } catch (Throwable t) {
@@ -103,7 +104,8 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
         if (extension != null) {
             type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
         }
-        return type;}
+        return type;
+    }
 
     @Override
     public VH onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -144,6 +146,13 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
     @Override
     public void onBindViewHolder(VH holder, int position) {
         holder.bind(getData().get(position));
+
+        if (position == getData().size() - 1) {
+            holder.setNeedToShowDate(true);
+        } else {
+            holder.setNeedToShowDate(!QiscusDateUtil.isDateEqualIgnoreTime(getData().get(position).getTime(),
+                    getData().get(position + 1).getTime()));
+        }
     }
 
     public void addOrUpdate(List<QiscusComment> comments) {
@@ -220,6 +229,7 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
         private ImageView avatar;
         private TextView sender;
         private TextView date;
+        private TextView dateOfMessage;
         @Nullable
         private ImageView state;
 
@@ -232,6 +242,7 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
             avatar = itemView.findViewById(R.id.avatar);
             sender = itemView.findViewById(R.id.sender);
             date = itemView.findViewById(R.id.date);
+            dateOfMessage = itemView.findViewById(R.id.dateOfMessage);
             state = itemView.findViewById(R.id.state);
 
             pendingStateColor = ContextCompat.getColor(itemView.getContext(), R.color.pending_message);
@@ -249,7 +260,25 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
                     .into(avatar);
             sender.setText(comment.getSender());
             date.setText(DateUtil.getTimeStringFromDate(comment.getTime()));
+            if (dateOfMessage != null) {
+                dateOfMessage.setText(DateUtil.toFullDate(comment.getTime()));
+            }
+
             renderState(comment);
+
+
+        }
+
+        void setNeedToShowDate(Boolean showDate) {
+            if (showDate == true) {
+                if (dateOfMessage != null) {
+                    dateOfMessage.setVisibility(View.VISIBLE);
+                }
+            } else {
+                if (dateOfMessage != null) {
+                    dateOfMessage.setVisibility(View.GONE);
+                }
+            }
         }
 
         private void renderState(QiscusComment comment) {
@@ -284,11 +313,13 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
     static class TextVH extends VH {
         private TextView message;
         private TextView sender;
+        private TextView dateOfMessage;
 
         TextVH(View itemView) {
             super(itemView);
             message = itemView.findViewById(R.id.message);
             sender = itemView.findViewById(R.id.sender);
+            dateOfMessage = itemView.findViewById(R.id.dateOfMessage);
         }
 
         @Override
@@ -297,10 +328,27 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
             message.setText(comment.getMessage());
             QiscusChatRoom chatRoom = QiscusCore.getDataStore().getChatRoom(comment.getRoomId());
 
-            if (chatRoom.isGroup()== false){
+            if (chatRoom.isGroup() == false) {
                 sender.setVisibility(View.GONE);
-            }else{
+            } else {
                 sender.setVisibility(View.VISIBLE);
+            }
+
+            if (dateOfMessage != null) {
+                dateOfMessage.setText(DateUtil.toFullDate(comment.getTime()));
+            }
+        }
+
+        @Override
+        void setNeedToShowDate(Boolean showDate) {
+            if (showDate == true) {
+                if (dateOfMessage != null) {
+                    dateOfMessage.setVisibility(View.VISIBLE);
+                }
+            } else {
+                if (dateOfMessage != null) {
+                    dateOfMessage.setVisibility(View.GONE);
+                }
             }
         }
     }
@@ -309,12 +357,14 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
         private ImageView thumbnail;
         private TextView messageCaption;
         private TextView sender;
+        private TextView dateOfMessage;
 
         ImageVH(View itemView) {
             super(itemView);
             thumbnail = itemView.findViewById(R.id.thumbnail);
             messageCaption = itemView.findViewById(R.id.messageCaption);
             sender = itemView.findViewById(R.id.sender);
+            dateOfMessage = itemView.findViewById(R.id.dateOfMessage);
         }
 
         @Override
@@ -328,30 +378,47 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
                 String caption = content.getString("caption");
 
                 if (url.startsWith("http")) { //We have sent it
-                    showSentImage(comment,url);
+                    showSentImage(comment, url);
                 } else { //Still uploading the image
                     showSendingImage(url);
                 }
 
-                if(caption.isEmpty()){
+                if (caption.isEmpty()) {
                     messageCaption.setVisibility(View.GONE);
-                }else {
+                } else {
                     messageCaption.setVisibility(View.VISIBLE);
                     messageCaption.setText(caption);
                 }
 
                 QiscusChatRoom chatRoom = QiscusCore.getDataStore().getChatRoom(comment.getRoomId());
 
-                if (chatRoom.isGroup()== false){
+                if (chatRoom.isGroup() == false) {
                     sender.setVisibility(View.GONE);
-                }else{
+                } else {
                     sender.setVisibility(View.VISIBLE);
+                }
+
+                if (dateOfMessage != null) {
+                    dateOfMessage.setText(DateUtil.toFullDate(comment.getTime()));
                 }
 
             } catch (Throwable t) {
                 Log.e("SampleCore", "Could not parse malformed JSON: \"" + comment.getExtraPayload() + "\"");
             }
 
+        }
+
+        @Override
+        void setNeedToShowDate(Boolean showDate) {
+            if (showDate == true) {
+                if (dateOfMessage != null) {
+                    dateOfMessage.setVisibility(View.VISIBLE);
+                }
+            } else {
+                if (dateOfMessage != null) {
+                    dateOfMessage.setVisibility(View.GONE);
+                }
+            }
         }
 
         private void showSendingImage(String url) {
@@ -388,11 +455,13 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
     static class FileVH extends VH {
         private TextView fileName;
         private TextView sender;
+        private TextView dateOfMessage;
 
         FileVH(View itemView) {
             super(itemView);
             fileName = itemView.findViewById(R.id.file_name);
             sender = itemView.findViewById(R.id.sender);
+            dateOfMessage = itemView.findViewById(R.id.dateOfMessage);
         }
 
         @Override
@@ -401,9 +470,9 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
 
             QiscusChatRoom chatRoom = QiscusCore.getDataStore().getChatRoom(comment.getRoomId());
 
-            if (chatRoom.isGroup()== false){
+            if (chatRoom.isGroup() == false) {
                 sender.setVisibility(View.GONE);
-            }else{
+            } else {
                 sender.setVisibility(View.VISIBLE);
             }
             try {
@@ -414,10 +483,27 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
                 String filename = content.getString("file_name");
                 fileName.setText(filename);
 
+                if (dateOfMessage != null) {
+                    dateOfMessage.setText(DateUtil.toFullDate(comment.getTime()));
+                }
+
             } catch (Throwable t) {
                 Log.e("SampleCore", "Could not parse malformed JSON: \"" + comment.getExtraPayload() + "\"");
             }
 
+        }
+
+        @Override
+        void setNeedToShowDate(Boolean showDate) {
+            if (showDate == true) {
+                if (dateOfMessage != null) {
+                    dateOfMessage.setVisibility(View.VISIBLE);
+                }
+            } else {
+                if (dateOfMessage != null) {
+                    dateOfMessage.setVisibility(View.GONE);
+                }
+            }
         }
     }
 }
