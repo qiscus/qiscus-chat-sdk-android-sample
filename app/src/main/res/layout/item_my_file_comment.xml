@@ -73,16 +73,6 @@
                 android:orientation="vertical"
                 android:padding="8dp"></LinearLayout>
 
-            <TextView
-                android:id="@+id/sender"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:gravity="end"
-                android:maxLines="1"
-                android:textSize="12sp"
-                android:visibility="gone" />
-
             <ImageView
                 android:id="@+id/ic_file"
                 android:layout_width="30dp"

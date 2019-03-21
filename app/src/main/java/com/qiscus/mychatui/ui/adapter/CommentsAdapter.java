@@ -1,7 +1,13 @@
 package com.qiscus.mychatui.ui.adapter;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.ContextWrapper;
+import android.graphics.Bitmap;
+import android.media.MediaScannerConnection;
+import android.net.Uri;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -11,21 +17,32 @@ import android.view.ViewGroup;
 import android.webkit.MimeTypeMap;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.request.RequestOptions;
 import com.qiscus.mychatui.R;
+import com.qiscus.mychatui.ui.fragment.ChatRoomFragment;
 import com.qiscus.mychatui.util.DateUtil;
+import com.qiscus.mychatui.util.QiscusImageUtil;
 import com.qiscus.nirmana.Nirmana;
 import com.qiscus.sdk.chat.core.QiscusCore;
 import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
 import com.qiscus.sdk.chat.core.data.model.QiscusComment;
+import com.qiscus.sdk.chat.core.data.remote.QiscusApi;
 import com.qiscus.sdk.chat.core.util.QiscusAndroidUtil;
 import com.qiscus.sdk.chat.core.util.QiscusDateUtil;
+import com.qiscus.sdk.chat.core.util.QiscusFileUtil;
+import com.qiscus.sdk.chat.core.util.QiscusTextUtil;
 
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.List;
+
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 /**
  * Created on : January 31, 2018
@@ -270,14 +287,15 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
                             .dontAnimate())
                     .load(comment.getSenderAvatar())
                     .into(avatar);
-            sender.setText(comment.getSender());
+            if (sender != null) {
+                sender.setText(comment.getSender());
+            }
             date.setText(DateUtil.getTimeStringFromDate(comment.getTime()));
             if (dateOfMessage != null) {
                 dateOfMessage.setText(DateUtil.toFullDate(comment.getTime()));
             }
 
             renderState(comment);
-
 
         }
 
@@ -340,10 +358,12 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
             message.setText(comment.getMessage());
             QiscusChatRoom chatRoom = QiscusCore.getDataStore().getChatRoom(comment.getRoomId());
 
-            if (chatRoom.isGroup() == false) {
-                sender.setVisibility(View.GONE);
-            } else {
-                sender.setVisibility(View.VISIBLE);
+            if (sender != null) {
+                if (chatRoom.isGroup() == false) {
+                    sender.setVisibility(View.GONE);
+                } else {
+                    sender.setVisibility(View.VISIBLE);
+                }
             }
 
             if (dateOfMessage != null) {
@@ -388,6 +408,7 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
                 JSONObject content = obj.getJSONObject("content");
                 String url = content.getString("url");
                 String caption = content.getString("caption");
+                String filename = content.getString("file_name");
 
                 if (url.startsWith("http")) { //We have sent it
                     showSentImage(comment, url);
@@ -404,20 +425,56 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
 
                 QiscusChatRoom chatRoom = QiscusCore.getDataStore().getChatRoom(comment.getRoomId());
 
-                if (chatRoom.isGroup() == false) {
-                    sender.setVisibility(View.GONE);
-                } else {
-                    sender.setVisibility(View.VISIBLE);
+                if (sender != null) {
+                    if (chatRoom.isGroup() == false) {
+                        sender.setVisibility(View.GONE);
+                    } else {
+                        sender.setVisibility(View.VISIBLE);
+                    }
                 }
 
                 if (dateOfMessage != null) {
                     dateOfMessage.setText(DateUtil.toFullDate(comment.getTime()));
                 }
 
+                thumbnail.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        File localPath = QiscusCore.getDataStore().getLocalPath(comment.getId());
+                        if (localPath != null) {
+                            Toast.makeText(itemView.getContext(),"Image already in the gallery",Toast.LENGTH_SHORT).show();
+                        }else{
+                            downloadFile(comment,filename,url);
+                        }
+                    }
+                });
+
             } catch (Throwable t) {
                 Log.e("SampleCore", "Could not parse malformed JSON: \"" + comment.getExtraPayload() + "\"");
             }
 
+        }
+
+        public void downloadFile(QiscusComment qiscusComment, String fileName, String URLImage) {
+            QiscusApi.getInstance()
+                    .downloadFile(URLImage, fileName, total -> {
+                        // here you can get the progress total downloaded
+                    })
+                    .doOnNext(file -> {
+                        // here we update the local path of file
+                        QiscusCore.getDataStore()
+                                .addOrUpdateLocalPath(qiscusComment.getRoomId(), qiscusComment.getId(), file.getAbsolutePath());
+
+                        QiscusImageUtil.addImageToGallery(file);
+                    })
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(file -> {
+                        //on success
+                        Toast.makeText(itemView.getContext(),"success save image to gallery",Toast.LENGTH_SHORT).show();
+                    }, throwable -> {
+                        //on error
+                    });
         }
 
         @Override
@@ -482,11 +539,14 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
 
             QiscusChatRoom chatRoom = QiscusCore.getDataStore().getChatRoom(comment.getRoomId());
 
-            if (chatRoom.isGroup() == false) {
-                sender.setVisibility(View.GONE);
-            } else {
-                sender.setVisibility(View.VISIBLE);
+            if (sender != null) {
+                if (chatRoom.isGroup() == false) {
+                    sender.setVisibility(View.GONE);
+                } else {
+                    sender.setVisibility(View.VISIBLE);
+                }
             }
+
             try {
                 JSONObject obj = new JSONObject(comment.getExtraPayload());
                 JSONObject content = obj.getJSONObject("content");
@@ -498,6 +558,19 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
                 if (dateOfMessage != null) {
                     dateOfMessage.setText(DateUtil.toFullDate(comment.getTime()));
                 }
+
+                fileName.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        File localPath = QiscusCore.getDataStore().getLocalPath(comment.getId());
+                        if (localPath != null) {
+                            QiscusImageUtil.addImageToGallery(localPath);
+                            Toast.makeText(itemView.getContext(),"File already save",Toast.LENGTH_SHORT).show();
+                        }else{
+                            downloadFile(comment,filename,url);
+                        }
+                    }
+                });
 
             } catch (Throwable t) {
                 Log.e("SampleCore", "Could not parse malformed JSON: \"" + comment.getExtraPayload() + "\"");
@@ -516,6 +589,28 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
                     dateOfMessage.setVisibility(View.GONE);
                 }
             }
+        }
+
+        public void downloadFile(QiscusComment qiscusComment, String fileName, String URLFile) {
+            QiscusApi.getInstance()
+                    .downloadFile(URLFile, fileName, total -> {
+                        // here you can get the progress total downloaded
+                    })
+                    .doOnNext(file -> {
+                        // here we update the local path of file
+                        QiscusCore.getDataStore()
+                                .addOrUpdateLocalPath(qiscusComment.getRoomId(), qiscusComment.getId(), file.getAbsolutePath());
+
+                        QiscusImageUtil.addImageToGallery(file);
+                    })
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(file -> {
+                        //on success
+                        Toast.makeText(itemView.getContext(),"Success save file",Toast.LENGTH_SHORT).show();
+                    }, throwable -> {
+                        //on error
+                    });
         }
     }
 }

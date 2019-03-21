@@ -22,7 +22,6 @@ import com.qiscus.sdk.chat.core.event.QiscusCommentResendEvent;
 import com.qiscus.sdk.chat.core.event.QiscusMqttStatusEvent;
 import com.qiscus.sdk.chat.core.presenter.QiscusChatRoomEventHandler;
 import com.qiscus.sdk.chat.core.util.QiscusAndroidUtil;
-import com.qiscus.sdk.chat.core.util.QiscusErrorLogger;
 import com.qiscus.sdk.chat.core.util.QiscusFileUtil;
 import com.qiscus.sdk.chat.core.util.QiscusTextUtil;
 
@@ -231,7 +230,14 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
                 .uploadFile(compressedFile, percentage -> qiscusComment.setProgress((int) percentage))
                 .doOnSubscribe(() -> QiscusCore.getDataStore().addOrUpdate(qiscusComment))
                 .flatMap(uri -> {
-                    qiscusComment.updateAttachmentUrl(uri.toString());
+                    try {
+                        JSONObject jsonData = new JSONObject(qiscusComment.getExtraPayload());
+                        JSONObject content = jsonData.getJSONObject("content");
+                        content.put("url", uri);
+                        qiscusComment.setExtraPayload(jsonData.toString());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                     return QiscusApi.getInstance().postComment(qiscusComment);
                 })
                 .doOnNext(commentSend -> {
@@ -257,6 +263,7 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
 
         pendingTask.put(qiscusComment, subscription);
     }
+
 
     private void resendFile(QiscusComment qiscusComment) {
         if (qiscusComment.getAttachmentUri().toString().startsWith("http")) { //We forward file message

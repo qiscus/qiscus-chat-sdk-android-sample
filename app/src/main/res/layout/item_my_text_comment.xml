@@ -65,17 +65,6 @@
             android:padding="8dp">
 
             <TextView
-                android:id="@+id/sender"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:gravity="end"
-                android:maxLines="1"
-                android:text="sender"
-                android:textSize="12sp"
-                android:visibility="gone" />
-
-            <TextView
                 android:id="@+id/message"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
