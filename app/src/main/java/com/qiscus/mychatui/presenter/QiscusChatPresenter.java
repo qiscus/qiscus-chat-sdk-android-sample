@@ -22,6 +22,7 @@ import com.qiscus.sdk.chat.core.event.QiscusCommentResendEvent;
 import com.qiscus.sdk.chat.core.event.QiscusMqttStatusEvent;
 import com.qiscus.sdk.chat.core.presenter.QiscusChatRoomEventHandler;
 import com.qiscus.sdk.chat.core.util.QiscusAndroidUtil;
+import com.qiscus.sdk.chat.core.util.QiscusErrorLogger;
 import com.qiscus.sdk.chat.core.util.QiscusFileUtil;
 import com.qiscus.sdk.chat.core.util.QiscusTextUtil;
 
@@ -220,7 +221,7 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
             e.printStackTrace();
         }
 
-        QiscusComment qiscusComment = QiscusComment.generateCustomMessage(room.getId(),"Send image","image",json);
+        QiscusComment qiscusComment = QiscusComment.generateCustomMessage(room.getId(), "Send image", "image", json);
 
         qiscusComment.setDownloading(true);
         view.onSendingComment(qiscusComment);
@@ -337,8 +338,29 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
     public void deleteComment(QiscusComment qiscusComment) {
         cancelPendingComment(qiscusComment);
         QiscusResendCommentHelper.cancelPendingComment(qiscusComment);
-        QiscusAndroidUtil.runOnBackgroundThread(() -> QiscusCore.getDataStore().delete(qiscusComment));
-        view.onCommentDeleted(qiscusComment);
+
+        // this code for delete from local
+        // QiscusAndroidUtil.runOnBackgroundThread(() -> QiscusCore.getDataStore().delete(qiscusComment));
+
+        Observable.from(new QiscusComment[]{qiscusComment})
+                .map(QiscusComment::getUniqueId)
+                .toList()
+                .flatMap(uniqueIds -> QiscusApi.getInstance().deleteComments(uniqueIds, true))
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .compose(bindToLifecycle())
+                .subscribe(deletedComments -> {
+                    if (view != null) {
+                        view.dismissLoading();
+                        view.onCommentDeleted(qiscusComment);
+                    }
+                }, throwable -> {
+                    if (view != null) {
+                        view.dismissLoading();
+                        view.showError(QiscusTextUtil.getString(R.string.failed_to_delete_messages));
+                    }
+
+                });
     }
 
     private Observable<Pair<QiscusChatRoom, List<QiscusComment>>> getInitRoomData() {

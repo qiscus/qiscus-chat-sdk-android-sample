@@ -1,7 +1,6 @@
 package com.qiscus.mychatui.ui.adapter;
 
 import android.content.Context;
-import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
@@ -49,6 +48,12 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
 
     public CommentsAdapter(Context context) {
         this.context = context;
+    }
+
+    public interface RecyclerViewItemClickListener {
+        void onItemClick(View view, int position);
+
+        void onItemLongClick(View view, int position);
     }
 
     @Override
@@ -146,6 +151,7 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
     @Override
     public void onBindViewHolder(VH holder, int position) {
         holder.bind(getData().get(position));
+        holder.position = position;
 
         if (position == getData().size() - 1) {
             holder.setNeedToShowDate(true);
@@ -153,6 +159,10 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
             holder.setNeedToShowDate(!QiscusDateUtil.isDateEqualIgnoreTime(getData().get(position).getTime(),
                     getData().get(position + 1).getTime()));
         }
+
+
+        setOnClickListener(holder.itemView, position);
+
     }
 
     public void addOrUpdate(List<QiscusComment> comments) {
@@ -236,6 +246,7 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
         private int pendingStateColor;
         private int readStateColor;
         private int failedStateColor;
+        public int position = 0;
 
         VH(View itemView) {
             super(itemView);
@@ -248,6 +259,7 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
             pendingStateColor = ContextCompat.getColor(itemView.getContext(), R.color.pending_message);
             readStateColor = ContextCompat.getColor(itemView.getContext(), R.color.read_message);
             failedStateColor = ContextCompat.getColor(itemView.getContext(), R.color.qiscus_red);
+
         }
 
         void bind(QiscusComment comment) {

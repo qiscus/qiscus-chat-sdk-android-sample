@@ -2,6 +2,7 @@ package com.qiscus.mychatui.ui.adapter;
 
 import android.support.v7.util.SortedList;
 import android.support.v7.widget.RecyclerView;
+import android.view.View;
 
 /**
  * Created on : January 31, 2018
@@ -10,6 +11,8 @@ import android.support.v7.widget.RecyclerView;
  * GitHub     : https://github.com/zetbaitsu
  */
 public abstract class SortedRecyclerViewAdapter<Item, VH extends RecyclerView.ViewHolder> extends RecyclerView.Adapter<VH> {
+
+    private CommentsAdapter.RecyclerViewItemClickListener recyclerViewItemClickListener;
 
     private SortedList<Item> data = new SortedList<>(getItemClass(), new SortedList.Callback<Item>() {
         @Override
@@ -99,4 +102,29 @@ public abstract class SortedRecyclerViewAdapter<Item, VH extends RecyclerView.Vi
 
         return -1;
     }
+
+    //Set method of OnItemClickListener object
+    public void setOnItemClickListener(CommentsAdapter.RecyclerViewItemClickListener recyclerViewItemClickListener){
+        this.recyclerViewItemClickListener=recyclerViewItemClickListener;
+    }
+
+    public void setOnClickListener(View view, int position){
+        view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //When item view is clicked, trigger the itemclicklistener
+                recyclerViewItemClickListener.onItemClick(v,position);
+            }
+        });
+        view.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                //When item view is clicked long, trigger the itemclicklistener
+                recyclerViewItemClickListener.onItemLongClick(v,position);
+                return true;
+            }
+        });
+    }
+
+
 }

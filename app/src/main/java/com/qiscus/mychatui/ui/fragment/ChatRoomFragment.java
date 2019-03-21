@@ -1,7 +1,9 @@
 package com.qiscus.mychatui.ui.fragment;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -157,6 +159,41 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
         recyclerView.addOnScrollListener(new QiscusChatScrollListener(layoutManager, this));
         commentsAdapter = new CommentsAdapter(getActivity());
         recyclerView.setAdapter(commentsAdapter);
+
+        commentsAdapter.setOnItemClickListener(new CommentsAdapter.RecyclerViewItemClickListener() {
+            @Override
+            public void onItemClick(View view, int position) {
+               //no action
+            }
+
+            @Override
+            public void onItemLongClick(View view, int position) {
+                AlertDialog.Builder builder1 = new AlertDialog.Builder(getActivity());
+                builder1.setMessage("Sure to delete this message??");
+                builder1.setCancelable(true);
+
+                builder1.setPositiveButton(
+                        "Yes",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                chatPresenter.deleteComment(commentsAdapter.getData().get(position));
+                                dialog.cancel();
+                            }
+                        });
+
+                builder1.setNegativeButton(
+                        "Cancel",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int id) {
+                                dialog.cancel();
+                            }
+                        });
+
+                AlertDialog alert11 = builder1.create();
+                alert11.show();
+
+            }
+        });
 
         chatPresenter = new QiscusChatPresenter(this, chatRoom);
         chatPresenter.loadComments(20);
