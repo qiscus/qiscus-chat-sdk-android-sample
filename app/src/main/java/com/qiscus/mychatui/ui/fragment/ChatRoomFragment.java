@@ -119,21 +119,18 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
         messageField.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                if (!typing) {
-                    typing = true;
-                    notifyServerTyping(true);
-                }
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
                 typing = true;
                 notifyServerTyping(true);
             }
 
             @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+            }
+
+            @Override
             public void afterTextChanged(Editable s) {
-                QiscusAndroidUtil.runOnUIThread(stopTypingNotifyTask, 800);
+
             }
         });
 
@@ -163,7 +160,7 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
         commentsAdapter.setOnItemClickListener(new CommentsAdapter.RecyclerViewItemClickListener() {
             @Override
             public void onItemClick(View view, int position) {
-               //no action
+                //no action
             }
 
             @Override
@@ -240,10 +237,10 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
         this.chatRoom = chatRoom;
         commentsAdapter.addOrUpdate(comments);
 
-        if(comments.size() == 0){
+        if (comments.size() == 0) {
             emptyChat.setVisibility(View.VISIBLE);
             recyclerView.setVisibility(View.GONE);
-        }else{
+        } else {
             emptyChat.setVisibility(View.GONE);
             recyclerView.setVisibility(View.VISIBLE);
         }
@@ -268,7 +265,7 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
     public void onSendingComment(QiscusComment comment) {
         commentsAdapter.addOrUpdate(comment);
         recyclerView.smoothScrollToPosition(0);
-        if(emptyChat.isShown()){
+        if (emptyChat.isShown()) {
             emptyChat.setVisibility(View.GONE);
             recyclerView.setVisibility(View.VISIBLE);
         }
@@ -291,7 +288,7 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
             recyclerView.smoothScrollToPosition(0);
         }
 
-        if(emptyChat.isShown()){
+        if (emptyChat.isShown()) {
             emptyChat.setVisibility(View.GONE);
             recyclerView.setVisibility(View.VISIBLE);
         }
@@ -371,7 +368,7 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
     }
 
     @Override
-    public void showDeleteLoading(){
+    public void showDeleteLoading() {
 
     }
 
@@ -399,7 +396,7 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
             } catch (Exception e) {
                 showError("Failed to open image file!");
             }
-        }else if (requestCode == SEND_PICTURE_CONFIRMATION_REQUEST && resultCode == Activity.RESULT_OK) {
+        } else if (requestCode == SEND_PICTURE_CONFIRMATION_REQUEST && resultCode == Activity.RESULT_OK) {
             if (data == null) {
                 showError(getString(R.string.qiscus_chat_error_failed_open_picture));
                 return;
