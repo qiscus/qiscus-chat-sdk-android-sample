@@ -113,11 +113,11 @@
                     android:text="USER KEY" />
 
                 <EditText
-                    android:id="@+id/email"
+                    android:id="@+id/password"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Email"
-                    android:inputType="textEmailAddress" />
+                    android:hint="Password"
+                    android:inputType="textPassword" />
             </LinearLayout>
 
             <LinearLayout
@@ -135,11 +135,11 @@
                     android:text="DISPLAY NAME" />
 
                 <EditText
-                    android:id="@+id/password"
+                    android:id="@+id/email"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Password"
-                    android:inputType="textPassword" />
+                    android:hint="Display Name"
+                    android:inputType="textPersonName|text" />
             </LinearLayout>
 
             <LinearLayout
