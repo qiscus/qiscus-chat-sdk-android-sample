@@ -18,4 +18,5 @@
     <string name="qiscus_chat_error_failed_open_picture">Failed to open picture!</string>
     <string name="qiscus_chat_error_failed_read_picture">Failed to read picture data!</string>
     <string name="qiscus_chat_error_failed_open_file">Failed to open file!</string>
+    <string name="qiscus_chat_error_failed_write">Failed to write temporary picture!</string>
 </resources>

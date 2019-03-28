@@ -1,6 +1,7 @@
 package com.qiscus.mychatui.presenter;
 
 import android.support.v4.util.Pair;
+import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 import com.qiscus.mychatui.R;
@@ -195,8 +196,12 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
 
     public void sendFile(File file, String caption) {
         File compressedFile = file;
+        Boolean isImage = false;
+        String fileAttachment = "image";
+        String sendMassage = "Send Image";
         if (QiscusFileUtil.isImage(file.getPath()) && !file.getName().endsWith(".gif")) {
             try {
+                isImage = true;
                 compressedFile = new Compressor(QiscusCore.getApps()).compressToFile(file);
             } catch (NullPointerException | IOException e) {
                 view.showError(QiscusTextUtil.getString(R.string.qiscus_corrupted_file));
@@ -220,14 +225,22 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
             e.printStackTrace();
         }
 
-        QiscusComment qiscusComment = QiscusComment.generateCustomMessage(room.getId(), "Send image", "image", json);
+        if (isImage == false){
+            fileAttachment = "file";
+            sendMassage = "Send FIle";
+        }
+
+        QiscusComment qiscusComment = QiscusComment.generateCustomMessage(room.getId(), sendMassage, fileAttachment, json);
 
         qiscusComment.setDownloading(true);
         view.onSendingComment(qiscusComment);
 
         File finalCompressedFile = compressedFile;
         Subscription subscription = QiscusApi.getInstance()
-                .uploadFile(compressedFile, percentage -> qiscusComment.setProgress((int) percentage))
+                .uploadFile(compressedFile, percentage ->
+                {
+                    qiscusComment.setProgress((int) percentage);
+                })
                 .doOnSubscribe(() -> QiscusCore.getDataStore().addOrUpdate(qiscusComment))
                 .flatMap(uri -> {
                     try {
@@ -347,8 +360,11 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
         QiscusResendCommentHelper.cancelPendingComment(qiscusComment);
 
         // this code for delete from local
-        // QiscusAndroidUtil.runOnBackgroundThread(() -> QiscusCore.getDataStore().delete(qiscusComment));
-
+        QiscusAndroidUtil.runOnBackgroundThread(() -> QiscusCore.getDataStore().delete(qiscusComment));
+        if (view != null) {
+            view.dismissLoading();
+            view.onCommentDeleted(qiscusComment);
+        }
         Observable.from(new QiscusComment[]{qiscusComment})
                 .map(QiscusComment::getUniqueId)
                 .toList()
@@ -364,7 +380,7 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
                 }, throwable -> {
                     if (view != null) {
                         view.dismissLoading();
-                        view.showError(QiscusTextUtil.getString(R.string.failed_to_delete_messages));
+                        //view.showError(QiscusTextUtil.getString(R.string.failed_to_delete_messages));
                     }
 
                 });

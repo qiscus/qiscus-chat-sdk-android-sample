@@ -5,10 +5,15 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
@@ -24,13 +29,16 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.qiscus.jupuk.JupukBuilder;
 import com.qiscus.jupuk.JupukConst;
 import com.qiscus.mychatui.R;
 import com.qiscus.mychatui.presenter.QiscusChatPresenter;
 import com.qiscus.mychatui.ui.QiscusSendPhotoConfirmationActivity;
 import com.qiscus.mychatui.ui.adapter.CommentsAdapter;
 import com.qiscus.mychatui.ui.view.QiscusChatScrollListener;
+import com.qiscus.mychatui.util.QiscusImageUtil;
 import com.qiscus.mychatui.util.QiscusPermissionsUtil;
+import com.qiscus.sdk.chat.core.QiscusCore;
 import com.qiscus.sdk.chat.core.data.local.QiscusCacheManager;
 import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
 import com.qiscus.sdk.chat.core.data.model.QiscusComment;
@@ -40,6 +48,7 @@ import com.qiscus.sdk.chat.core.util.QiscusAndroidUtil;
 import com.qiscus.sdk.chat.core.util.QiscusFileUtil;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -55,10 +64,24 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
     private static final String CHAT_ROOM_KEY = "extra_chat_room";
     private static final int REQUEST_PICK_IMAGE = 1;
     private static final int REQUEST_FILE_PERMISSION = 2;
+    protected static final int RC_PERMISSIONS = 127;
+    protected static final int RC_CAMERA_PERMISSION = 128;
+    protected static final int RC_AUDIO_PERMISSION = 129;
+    protected static final int RC_FILE_PERMISSION = 130;
 
     private static final String[] FILE_PERMISSION = {
             "android.permission.WRITE_EXTERNAL_STORAGE",
             "android.permission.READ_EXTERNAL_STORAGE"
+    };
+    private static final String[] PERMISSIONS = {
+            "android.permission.WRITE_EXTERNAL_STORAGE",
+            "android.permission.READ_EXTERNAL_STORAGE",
+            "android.permission.CAMERA",
+    };
+    private static final String[] CAMERA_PERMISSION = {
+            "android.permission.CAMERA",
+            "android.permission.WRITE_EXTERNAL_STORAGE",
+            "android.permission.READ_EXTERNAL_STORAGE",
     };
     protected static final int TAKE_PICTURE_REQUEST = 3;
     protected static final int SEND_PICTURE_CONFIRMATION_REQUEST = 4;
@@ -70,7 +93,7 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
     private ProgressBar progressBar;
     private RecyclerView recyclerView;
     private CommentsAdapter commentsAdapter;
-    private LinearLayout emptyChat;
+    private LinearLayout emptyChat, linAttachment, linTakePhoto, linImageGallery, linFileDocument, linCancel;
 
     private QiscusChatPresenter chatPresenter;
 
@@ -98,6 +121,12 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
         progressBar = view.findViewById(R.id.progress_bar);
         recyclerView = view.findViewById(R.id.recyclerview);
         emptyChat = view.findViewById(R.id.empty_chat);
+        linAttachment = view.findViewById(R.id.linAttachment);
+        linTakePhoto = view.findViewById(R.id.linTakePhoto);
+        linImageGallery = view.findViewById(R.id.linImageGallery);
+        linFileDocument = view.findViewById(R.id.linFileDocument);
+        linCancel = view.findViewById(R.id.linCancel);
+
 
         return view;
     }
@@ -142,12 +171,83 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
         });
 
         attachImageButton.setOnClickListener(v -> {
-            if (QiscusPermissionsUtil.hasPermissions(getActivity(), FILE_PERMISSION)) {
-                pickImage();
-            } else {
-                requestReadFilePermission();
+            if (linAttachment.isShown()){
+                hideAttachmentPanel();
+            }else{
+                showAttachmentPanel();
+            }
+
+        });
+
+        linTakePhoto.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //camera
+                if (QiscusPermissionsUtil.hasPermissions(getActivity(), CAMERA_PERMISSION)) {
+                    Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    if (intent.resolveActivity(getActivity().getPackageManager()) != null) {
+                        File photoFile = null;
+                        try {
+                            photoFile = QiscusImageUtil.createImageFile();
+                        } catch (IOException ex) {
+                            showError(getString(R.string.qiscus_chat_error_failed_write));
+                        }
+
+                        if (photoFile != null) {
+                            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+                                intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
+                            } else {
+                                intent.putExtra(MediaStore.EXTRA_OUTPUT,
+                                        FileProvider.getUriForFile(getActivity(), QiscusCore.getApps().getPackageName() + ".qiscus.sdk.provider", photoFile));
+                            }
+                            startActivityForResult(intent, TAKE_PICTURE_REQUEST);
+                        }
+                        hideAttachmentPanel();
+                    }
+                } else {
+                    requestCameraPermission();
+                }
             }
         });
+
+
+        linImageGallery.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //gallery
+                if (QiscusPermissionsUtil.hasPermissions(getActivity(), FILE_PERMISSION)) {
+                    pickImage();
+                    hideAttachmentPanel();
+                } else {
+                    requestReadFilePermission();
+                }
+            }
+        });
+
+        linFileDocument.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //file
+                if (QiscusPermissionsUtil.hasPermissions(getActivity(), FILE_PERMISSION)) {
+                    new JupukBuilder().setMaxCount(1)
+                            .setColorPrimary(ContextCompat.getColor(getActivity(), R.color.colorPrimary))
+                            .setColorPrimaryDark(ContextCompat.getColor(getActivity(), R.color.colorPrimaryDark))
+                            .setColorAccent(ContextCompat.getColor(getActivity(), R.color.colorAccent))
+                            .pickDoc(getActivity());
+                    hideAttachmentPanel();
+                } else {
+                    requestAddFilePermission();
+                }
+            }
+        });
+
+        linCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                linAttachment.setVisibility(View.GONE);
+            }
+        });
+
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         layoutManager.setReverseLayout(true);
@@ -194,6 +294,14 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
 
         chatPresenter = new QiscusChatPresenter(this, chatRoom);
         chatPresenter.loadComments(20);
+    }
+
+    private void hideAttachmentPanel() {
+        linAttachment.setVisibility(View.GONE);
+    }
+
+    private void showAttachmentPanel() {
+        linAttachment.setVisibility(View.VISIBLE);
     }
 
     private void notifyServerTyping(boolean typing) {
@@ -412,6 +520,27 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
             } else {
                 showError(getString(R.string.qiscus_chat_error_failed_read_picture));
             }
+        } else if (requestCode == JupukConst.REQUEST_CODE_DOC && resultCode == Activity.RESULT_OK) {
+            if (data == null) {
+                showError(getString(R.string.qiscus_chat_error_failed_open_file));
+                return;
+            }
+            ArrayList<String> paths = data.getStringArrayListExtra(JupukConst.KEY_SELECTED_DOCS);
+            if (paths.size() > 0) {
+                chatPresenter.sendFile(new File(paths.get(0)));
+            }
+        } else if (requestCode == TAKE_PICTURE_REQUEST && resultCode == Activity.RESULT_OK) {
+            try {
+                File imageFile = QiscusFileUtil.from(Uri.parse(QiscusCacheManager.getInstance().getLastImagePath()));
+                List<QiscusPhoto> qiscusPhotos = new ArrayList<>();
+                qiscusPhotos.add(new QiscusPhoto(imageFile));
+                startActivityForResult(QiscusSendPhotoConfirmationActivity.generateIntent(getActivity(),
+                        chatRoom, qiscusPhotos),
+                        SEND_PICTURE_CONFIRMATION_REQUEST);
+            } catch (Exception e) {
+                showError(getString(R.string.qiscus_chat_error_failed_read_picture));
+                e.printStackTrace();
+            }
         }
     }
 
@@ -419,6 +548,20 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
         if (!QiscusPermissionsUtil.hasPermissions(getActivity(), FILE_PERMISSION)) {
             QiscusPermissionsUtil.requestPermissions(this, getString(R.string.qiscus_permission_request_title),
                     REQUEST_FILE_PERMISSION, FILE_PERMISSION);
+        }
+    }
+
+    protected void requestCameraPermission() {
+        if (!QiscusPermissionsUtil.hasPermissions(getActivity(), CAMERA_PERMISSION)) {
+            QiscusPermissionsUtil.requestPermissions(this, getString(R.string.qiscus_permission_request_title),
+                    RC_CAMERA_PERMISSION, CAMERA_PERMISSION);
+        }
+    }
+
+    protected void requestAddFilePermission() {
+        if (!QiscusPermissionsUtil.hasPermissions(getActivity(), FILE_PERMISSION)) {
+            QiscusPermissionsUtil.requestPermissions(this, getString(R.string.qiscus_permission_request_title),
+                    RC_FILE_PERMISSION, FILE_PERMISSION);
         }
     }
 

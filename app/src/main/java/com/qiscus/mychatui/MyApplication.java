@@ -2,6 +2,7 @@ package com.qiscus.mychatui;
 
 import android.support.multidex.MultiDexApplication;
 
+import com.qiscus.jupuk.Jupuk;
 import com.qiscus.mychatui.util.PushNotificationUtil;
 import com.qiscus.nirmana.Nirmana;
 import com.qiscus.sdk.chat.core.QiscusCore;
@@ -35,6 +36,7 @@ public class MyApplication extends MultiDexApplication {
                 .setNotificationListener(PushNotificationUtil::showNotification)
                 .setEnableFcmPushNotification(true);
         initEmoji();
+        Jupuk.init(this);
     }
 
     private static void initEmoji() {

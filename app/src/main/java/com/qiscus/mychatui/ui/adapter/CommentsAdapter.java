@@ -22,6 +22,7 @@ import android.widget.Toast;
 import com.bumptech.glide.request.RequestOptions;
 import com.qiscus.mychatui.R;
 import com.qiscus.mychatui.ui.fragment.ChatRoomFragment;
+import com.qiscus.mychatui.ui.view.QiscusProgressView;
 import com.qiscus.mychatui.util.DateUtil;
 import com.qiscus.mychatui.util.QiscusImageUtil;
 import com.qiscus.nirmana.Nirmana;
@@ -51,6 +52,7 @@ import rx.schedulers.Schedulers;
  * GitHub     : https://github.com/zetbaitsu
  */
 public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, CommentsAdapter.VH> {
+
     private static final int TYPE_MY_TEXT = 1;
     private static final int TYPE_OPPONENT_TEXT = 2;
     private static final int TYPE_MY_IMAGE = 3;
@@ -103,10 +105,8 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
             case CUSTOM:
                 try {
                     JSONObject obj = new JSONObject(comment.getExtraPayload());
-                    JSONObject content = obj.getJSONObject("content");
-                    String url = content.getString("url");
-
-                    if (getMimeType(url).contains("image")) {
+                    String type = obj.getString("type");
+                    if (type.contains("image")) {
                         return comment.isMyComment() ? TYPE_MY_IMAGE : TYPE_OPPONENT_IMAGE;
                     } else {
                         return comment.isMyComment() ? TYPE_MY_FILE : TYPE_OPPONENT_FILE;
@@ -521,21 +521,27 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
         }
     }
 
-    static class FileVH extends VH {
+    static class FileVH extends VH implements QiscusComment.ProgressListener, QiscusComment.DownloadingListener  {
         private TextView fileName;
         private TextView sender;
         private TextView dateOfMessage;
+        private QiscusProgressView progress;
+        private ImageView icFile;
 
         FileVH(View itemView) {
             super(itemView);
             fileName = itemView.findViewById(R.id.file_name);
             sender = itemView.findViewById(R.id.sender);
             dateOfMessage = itemView.findViewById(R.id.dateOfMessage);
+            progress = itemView.findViewById(R.id.progress);
+            icFile = itemView.findViewById(R.id.ic_file);
         }
 
         @Override
         void bind(QiscusComment comment) {
             super.bind(comment);
+            comment.setProgressListener(this);
+            comment.setDownloadingListener(this);
 
             QiscusChatRoom chatRoom = QiscusCore.getDataStore().getChatRoom(comment.getRoomId());
 
@@ -551,7 +557,6 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
                 JSONObject obj = new JSONObject(comment.getExtraPayload());
                 JSONObject content = obj.getJSONObject("content");
                 String url = content.getString("url");
-                String caption = content.getString("caption");
                 String filename = content.getString("file_name");
                 fileName.setText(filename);
 
@@ -589,6 +594,24 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
                     dateOfMessage.setVisibility(View.GONE);
                 }
             }
+        }
+
+        @Override
+        public void onProgress(QiscusComment qiscusComment, int percentage) {
+            progress.setProgress(percentage);
+            icFile.setVisibility(View.GONE);
+            if (percentage == 100){
+                progress.setVisibility(View.GONE);
+                icFile.setVisibility(View.VISIBLE);
+            }else{
+                progress.setVisibility(View.VISIBLE);
+                icFile.setVisibility(View.GONE);
+            }
+        }
+
+        @Override
+        public void onDownloading(QiscusComment qiscusComment, boolean downloading) {
+            progress.setVisibility(downloading ? View.VISIBLE : View.GONE);
         }
 
         public void downloadFile(QiscusComment qiscusComment, String fileName, String URLFile) {

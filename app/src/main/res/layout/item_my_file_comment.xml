@@ -3,6 +3,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical">
 
     <LinearLayout
@@ -64,7 +65,8 @@
             android:layout_weight="2"
             android:background="@drawable/qiscus_rounded_second_chat_bg"
             android:orientation="horizontal"
-            android:padding="8dp">
+            android:padding="8dp"
+            android:visibility="visible">
 
             <LinearLayout
                 android:layout_width="4dp"
@@ -78,6 +80,19 @@
                 android:layout_width="30dp"
                 android:layout_height="30dp"
                 android:src="@drawable/ic_file" />
+
+            <com.qiscus.mychatui.ui.view.QiscusCircleProgress
+                android:id="@+id/progress"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="10dp"
+                android:layout_marginLeft="10dp"
+                android:visibility="gone"
+                app:qcircle_finished_color="@color/colorAccent"
+                app:qcircle_text_size="12sp" />
 
             <TextView
                 android:id="@+id/file_name"
