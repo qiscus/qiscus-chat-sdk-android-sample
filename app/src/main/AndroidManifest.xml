@@ -14,6 +14,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
+        <activity android:name=".ui.EditNameActivity"></activity>
+        <activity android:name=".ui.ProfileActivity" />
         <activity
             android:name=".ui.LoginActivity"
             android:noHistory="true">
@@ -36,7 +38,6 @@
         <activity android:name=".ui.ChatRoomActivity" />
         <activity android:name=".ui.QiscusSendPhotoConfirmationActivity" />
         <activity android:name=".ui.GroupChatRoomActivity" />
-
 
         <receiver
             android:name=".service.NotificationClickReceiver"
@@ -66,7 +67,6 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/qiscus_provider_paths" />
         </provider>
-
     </application>
 
 </manifest>

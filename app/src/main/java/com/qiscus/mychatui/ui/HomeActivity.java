@@ -12,11 +12,14 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.bumptech.glide.request.RequestOptions;
 import com.qiscus.mychatui.MyApplication;
 import com.qiscus.mychatui.R;
 import com.qiscus.mychatui.presenter.HomePresenter;
 import com.qiscus.mychatui.ui.adapter.ChatRoomAdapter;
 import com.qiscus.mychatui.ui.adapter.OnItemClickListener;
+import com.qiscus.nirmana.Nirmana;
+import com.qiscus.sdk.chat.core.QiscusCore;
 import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
 import com.qiscus.sdk.chat.core.data.model.QiscusComment;
 import com.qiscus.sdk.chat.core.event.QiscusCommentReceivedEvent;
@@ -61,6 +64,23 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
                         .show();
             }
         });
+
+        Nirmana.getInstance().get()
+                .setDefaultRequestOptions(new RequestOptions()
+                        .placeholder(R.drawable.ic_qiscus_avatar)
+                        .error(R.drawable.ic_qiscus_avatar)
+                        .dontAnimate())
+                .load(QiscusCore.getQiscusAccount().getAvatar())
+                .into(avatar_profile);
+
+        avatar_profile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(HomeActivity.this, ProfileActivity.class);
+                startActivity(intent);
+            }
+        });
+
         recyclerView.setAdapter(chatRoomAdapter);
 
         homePresenter = new HomePresenter(this,
