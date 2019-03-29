@@ -14,7 +14,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".ui.EditNameActivity"></activity>
+        <activity android:name=".ui.EditRoomNameActivity"></activity>
+        <activity android:name=".ui.RoomInfoActivity" />
+        <activity android:name=".ui.EditNameActivity" />
         <activity android:name=".ui.ProfileActivity" />
         <activity
             android:name=".ui.LoginActivity"

@@ -7,6 +7,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.request.RequestOptions;
@@ -37,6 +38,7 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatRoomFragm
     private TextView tvSubtitle;
     private QiscusChatRoom chatRoom;
     private String opponentEmail;
+    private LinearLayout linTitleSubtitle;
 
     public static Intent generateIntent(Context context, QiscusChatRoom chatRoom) {
         Intent intent = new Intent(context, ChatRoomActivity.class);
@@ -59,6 +61,7 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatRoomFragm
         TextView roomName = findViewById(R.id.room_name);
         ImageView btBack = findViewById(R.id.bt_back);
         tvSubtitle = findViewById(R.id.subtitle);
+        linTitleSubtitle = findViewById(R.id.linTitleSubtile);
 
         Nirmana.getInstance().get()
                 .setDefaultRequestOptions(new RequestOptions()

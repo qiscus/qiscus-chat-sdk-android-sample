@@ -6,7 +6,9 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.request.RequestOptions;
@@ -53,6 +55,7 @@ public class GroupChatRoomActivity extends AppCompatActivity implements ChatRoom
         findViewById(R.id.back).setOnClickListener(v -> onBackPressed());
         ImageView avatar = findViewById(R.id.avatar);
         TextView roomName = findViewById(R.id.room_name);
+        LinearLayout linTitleSubtitle = findViewById(R.id.linTitleSubtitle);
         membersView = findViewById(R.id.members);
         membersView.setText(generateSubtitle(chatRoom.getMember()));
 
@@ -70,6 +73,14 @@ public class GroupChatRoomActivity extends AppCompatActivity implements ChatRoom
                         ChatRoomFragment.newInstance(chatRoom),
                         ChatRoomFragment.class.getName())
                 .commit();
+
+        linTitleSubtitle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(RoomInfoActivity.generateIntent(getApplication(), chatRoom));
+                finish();
+            }
+        });
     }
 
     private String generateSubtitle(List<QiscusRoomMember> members) {
