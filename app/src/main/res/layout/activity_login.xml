@@ -91,10 +91,10 @@
                     android:text="USER ID" />
 
                 <EditText
-                    android:id="@+id/name"
+                    android:id="@+id/et_user_id"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Name"
+                    android:hint="User ID"
                     android:inputType="textPersonName" />
             </LinearLayout>
 
@@ -107,13 +107,13 @@
                 android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/textView2"
+                    android:id="@+id/tv_user_key"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="USER KEY" />
 
                 <EditText
-                    android:id="@+id/password"
+                    android:id="@+id/et_password"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="Password"
@@ -129,13 +129,13 @@
                 android:orientation="vertical">
 
                 <TextView
-                    android:id="@+id/textView3"
+                    android:id="@+id/tv_display_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="DISPLAY NAME" />
 
                 <EditText
-                    android:id="@+id/email"
+                    android:id="@+id/et_display_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="Display Name"
@@ -150,12 +150,6 @@
                 android:layout_marginBottom="20dp"
                 android:gravity="center"
                 android:orientation="vertical">
-
-                <!--<Button-->
-                <!--android:id="@+id/login"-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="wrap_content"-->
-                <!--android:text="Login" />-->
 
                 <LinearLayout
                     android:id="@+id/login"

@@ -46,7 +46,7 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public void login(String name, String email, String password, Action<User> onSuccess, Action<Throwable> onError) {
+    public void login(String email, String password, String name, Action<User> onSuccess, Action<Throwable> onError) {
         QiscusCore.setUser(email, password)
                 .withUsername(name)
                 .withAvatarUrl(AvatarUtil.generateAvatar(name))

@@ -18,7 +18,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.request.RequestOptions;
+import com.qiscus.mychatui.MyApplication;
 import com.qiscus.mychatui.R;
+import com.qiscus.mychatui.presenter.ProfilePresenter;
 import com.qiscus.mychatui.util.QiscusImageUtil;
 import com.qiscus.mychatui.util.QiscusPermissionsUtil;
 import com.qiscus.nirmana.Nirmana;
@@ -36,15 +38,19 @@ import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class ProfileActivity extends AppCompatActivity {
-    LinearLayout logout, linBottom;
-    ImageView ivAvatar, ivEditName, btBack;
-    TextView tvName, tvUniqueID;
+public class ProfileActivity extends AppCompatActivity implements ProfilePresenter.View {
+    private LinearLayout logout, llBottom;
+    private ImageView ivAvatar, ivEditName, btBack;
+    private TextView tvName, tvUniqueID;
+
     private PopupWindow mPopupWindow;
+    private ProfilePresenter profilePresenter;
+
     private static final int REQUEST_PICK_IMAGE = 1;
     private static final int REQUEST_FILE_PERMISSION = 2;
     protected static final int TAKE_PICTURE_REQUEST = 3;
     protected static final int RC_CAMERA_PERMISSION = 128;
+
     private static final String[] FILE_PERMISSION = {
             "android.permission.WRITE_EXTERNAL_STORAGE",
             "android.permission.READ_EXTERNAL_STORAGE"
@@ -55,23 +61,28 @@ public class ProfileActivity extends AppCompatActivity {
             "android.permission.READ_EXTERNAL_STORAGE",
     };
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        logout = findViewById(R.id.linLogout);
+
         ivAvatar = findViewById(R.id.ivAvatar);
         ivEditName = findViewById(R.id.ivEditName);
         tvName = findViewById(R.id.tvName);
         tvUniqueID = findViewById(R.id.tvUniqueID);
         btBack = findViewById(R.id.bt_back);
-        linBottom = findViewById(R.id.linBottom);
+        llBottom = findViewById(R.id.llBottom);
+        logout = findViewById(R.id.llLogout);
+
+        profilePresenter = new ProfilePresenter(this,
+                MyApplication.getInstance().getComponent().getUserRepository());
 
         logout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //login activity
+                profilePresenter.logout();
             }
         });
 
@@ -157,7 +168,7 @@ public class ProfileActivity extends AppCompatActivity {
 
                 mPopupWindow.setAnimationStyle(R.style.popup_window_animation);
 
-                mPopupWindow.showAtLocation(linBottom, Gravity.BOTTOM, 0, 0);
+                mPopupWindow.showAtLocation(llBottom, Gravity.BOTTOM, 0, 0);
             }
         });
 
@@ -291,4 +302,11 @@ public class ProfileActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    public void logout() {
+        Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+    }
 }

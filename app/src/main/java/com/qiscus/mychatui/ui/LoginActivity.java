@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -22,8 +21,8 @@ import com.qiscus.mychatui.presenter.LoginPresenter;
  * GitHub     : https://github.com/zetbaitsu
  */
 public class LoginActivity extends AppCompatActivity implements LoginPresenter.View {
-    private EditText name;
-    private EditText email;
+    private EditText displayName;
+    private EditText userId;
     private EditText password;
     private LinearLayout loginButton;
     private ProgressDialog progressDialog;
@@ -33,29 +32,31 @@ public class LoginActivity extends AppCompatActivity implements LoginPresenter.V
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        name = findViewById(R.id.name);
-        email = findViewById(R.id.email);
-        password = findViewById(R.id.password);
+        userId = findViewById(R.id.et_user_id);
+        password = findViewById(R.id.et_password);
+        displayName = findViewById(R.id.et_display_name);
         loginButton = findViewById(R.id.login);
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Please wait!");
 
         LoginPresenter loginPresenter = new LoginPresenter(this,
                 MyApplication.getInstance().getComponent().getUserRepository());
+
         loginPresenter.start();
 
         loginButton.setOnClickListener(v -> {
-            if (TextUtils.isEmpty(name.getText().toString())) {
-                name.setError("Must not empty!");
-            } else if (TextUtils.isEmpty(email.getText().toString())) {
-                email.setError("Must not empty!");
+            if (TextUtils.isEmpty(userId.getText().toString())) {
+                userId.setError("Must not empty!");
             } else if (TextUtils.isEmpty(password.getText().toString())) {
                 password.setError("Must not empty!");
+            } else if (TextUtils.isEmpty(displayName.getText().toString())) {
+                displayName.setError("Must not empty!");
+
             } else {
                 loginPresenter.login(
-                        name.getText().toString(),
-                        email.getText().toString(),
-                        password.getText().toString()
+                        userId.getText().toString(),
+                        password.getText().toString(),
+                        displayName.getText().toString()
                 );
             }
         });
@@ -64,6 +65,7 @@ public class LoginActivity extends AppCompatActivity implements LoginPresenter.V
     @Override
     public void showHomePage() {
         startActivity(new Intent(this, HomeActivity.class));
+        finish();
     }
 
     @Override

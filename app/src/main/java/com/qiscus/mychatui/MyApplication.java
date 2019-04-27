@@ -31,6 +31,7 @@ public class MyApplication extends MultiDexApplication {
         component = new AppComponent(this);
         Nirmana.init(this);
         QiscusCore.init(this, BuildConfig.QISCUS_SDK_APP_ID);
+
         QiscusCore.getChatConfig()
                 .setEnableLog(true)
                 .setNotificationListener(PushNotificationUtil::showNotification)

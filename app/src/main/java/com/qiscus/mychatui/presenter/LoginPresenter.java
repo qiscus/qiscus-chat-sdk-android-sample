@@ -25,9 +25,9 @@ public class LoginPresenter {
         }, throwable -> view.showErrorMessage(throwable.getMessage()));
     }
 
-    public void login(String name, String email, String password) {
+    public void login(String email, String password, String name) {
         view.showLoading();
-        userRepository.login(name, email, password,
+        userRepository.login(email, password, name,
                 user -> {
                     view.dismissLoading();
                     view.showHomePage();

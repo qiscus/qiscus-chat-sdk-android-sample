@@ -12,7 +12,7 @@ import java.util.List;
  * GitHub     : https://github.com/zetbaitsu
  */
 public interface UserRepository {
-    void login(String name, String email, String password, Action<User> onSuccess, Action<Throwable> onError);
+    void login(String email, String password, String name, Action<User> onSuccess, Action<Throwable> onError);
 
     void getCurrentUser(Action<User> onSuccess, Action<Throwable> onError);
 
