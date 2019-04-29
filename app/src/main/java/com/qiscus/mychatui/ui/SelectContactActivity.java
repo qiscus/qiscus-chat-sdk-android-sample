@@ -43,7 +43,7 @@ public class SelectContactActivity extends AppCompatActivity implements SelectCo
 
         selectContactPresenter = new SelectContactPresenter(this,
                 MyApplication.getInstance().getComponent().getUserRepository());
-        selectContactPresenter.loadContacts();
+        selectContactPresenter.loadContacts(1, 100, "");
     }
 
     @Override

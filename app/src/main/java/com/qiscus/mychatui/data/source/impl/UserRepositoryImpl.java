@@ -15,6 +15,7 @@ import com.qiscus.mychatui.util.Action;
 import com.qiscus.mychatui.util.AvatarUtil;
 import com.qiscus.sdk.chat.core.QiscusCore;
 import com.qiscus.sdk.chat.core.data.model.QiscusAccount;
+import com.qiscus.sdk.chat.core.data.remote.QiscusApi;
 
 import org.json.JSONException;
 
@@ -67,14 +68,23 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public void getUsers(Action<List<User>> onSuccess, Action<Throwable> onError) {
-        getUsersObservable()
+    public void getUsers(long page, int limit, String query, Action<List<User>> onSuccess, Action<Throwable> onError) {
+        QiscusApi.getInstance().getUsers(page, limit, query)
                 .flatMap(Observable::from)
-                .filter(user -> !user.equals(getCurrentUser()))
+                .map(this::mapFromQiscusAccount)
                 .toList()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(onSuccess::call, onError::call);
+
+
+//        getUsersObservable()
+//                .flatMap(Observable::from)
+//                .filter(user -> !user.equals(getCurrentUser()))
+//                .toList()
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(onSuccess::call, onError::call);
     }
 
     @Override

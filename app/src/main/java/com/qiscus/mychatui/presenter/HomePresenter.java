@@ -45,18 +45,18 @@ public class HomePresenter {
 
     public void createChatRoom() {
         //show contactPage
-        //view.showContactPage();
+        view.showContactPage();
 
         //while is hardcode to create 1 On 1 chat, will change in next update
-        QiscusApi.getInstance().getChatRoom("crowdid94", null, null)
-                .subscribeOn(Schedulers.io()) //need to run this task on IO thread
-                .observeOn(AndroidSchedulers.mainThread()) //deliver result on main thread or UI thread
-                .subscribe(qiscusChatRoom -> {
-                    // on success
-                    view.showChatRoomPage(qiscusChatRoom);
-                }, throwable -> {
-                    // on error
-                });
+//        QiscusApi.getInstance().getChatRoom("crowdid94", null, null)
+//                .subscribeOn(Schedulers.io()) //need to run this task on IO thread
+//                .observeOn(AndroidSchedulers.mainThread()) //deliver result on main thread or UI thread
+//                .subscribe(qiscusChatRoom -> {
+//                    // on success
+//                    view.showChatRoomPage(qiscusChatRoom);
+//                }, throwable -> {
+//                    // on error
+//                });
 
 
         //while is hardcode to create group chat, will change in next update

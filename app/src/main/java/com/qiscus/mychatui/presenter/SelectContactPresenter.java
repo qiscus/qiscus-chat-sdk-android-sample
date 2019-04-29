@@ -20,9 +20,14 @@ public class SelectContactPresenter {
         this.userRepository = userRepository;
     }
 
-    public void loadContacts() {
-        userRepository.getUsers(users -> view.showContacts(users),
-                throwable -> view.showErrorMessage(throwable.getMessage()));
+    public void loadContacts(int page, int limit, String query) {
+        userRepository.getUsers(page, limit, query, users -> {
+                view.showContacts(users);
+                }, throwable -> {
+                    view.showErrorMessage(throwable.getMessage());
+                });
+//        userRepository.getUsers(users -> view.showContacts(users),
+//                throwable -> view.showErrorMessage(throwable.getMessage()));
     }
 
     public void selectContacts(List<User> selectedContacts) {

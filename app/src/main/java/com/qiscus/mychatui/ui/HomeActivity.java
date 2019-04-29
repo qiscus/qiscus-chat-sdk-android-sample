@@ -2,7 +2,6 @@ package com.qiscus.mychatui.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -33,7 +32,7 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
     private RecyclerView recyclerView;
     private LinearLayout linEmptyChatRooms;
     private ChatRoomAdapter chatRoomAdapter;
-    private ImageView create_chat, avatar_profile;
+    private ImageView createChat, avatarProfile;
     private HomePresenter homePresenter;
 
     @Override
@@ -44,8 +43,8 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
         setSupportActionBar(toolbar);
 
         linEmptyChatRooms = findViewById(R.id.linEmptyChatRooms);
-        create_chat = findViewById(R.id.create_chat);
-        avatar_profile = findViewById(R.id.avatar_profile);
+        createChat = findViewById(R.id.create_chat);
+        avatarProfile = findViewById(R.id.avatar_profile);
 
         recyclerView = findViewById(R.id.recyclerview);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -53,15 +52,10 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
         chatRoomAdapter = new ChatRoomAdapter(this);
         chatRoomAdapter.setOnItemClickListener(this);
 
-        create_chat.setOnClickListener(new View.OnClickListener() {
+        createChat.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new AlertDialog.Builder(HomeActivity.this)
-                        .setTitle("Choose")
-                        .setMessage("What you want??")
-                        .setPositiveButton("Create Chat", (dialog, which) -> homePresenter.createChatRoom())
-                        .setNegativeButton("Logout", (dialog, which) -> homePresenter.logout())
-                        .show();
+                startActivity(new Intent(HomeActivity.this, ContactActivity.class));
             }
         });
 
@@ -71,9 +65,9 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
                         .error(R.drawable.ic_qiscus_avatar)
                         .dontAnimate())
                 .load(QiscusCore.getQiscusAccount().getAvatar())
-                .into(avatar_profile);
+                .into(avatarProfile);
 
-        avatar_profile.setOnClickListener(new View.OnClickListener() {
+        avatarProfile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(HomeActivity.this, ProfileActivity.class);
@@ -106,29 +100,6 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
         EventBus.getDefault().unregister(this);
     }
 
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        MenuInflater inflater = new MenuInflater(this);
-//        inflater.inflate(R.menu.home, menu);
-//        return super.onCreateOptionsMenu(menu);
-//    }
-
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        if (item.getItemId() == R.id.new_chat) {
-//            homePresenter.createChatRoom();
-//        } else if (item.getItemId() == R.id.new_group) {
-//            homePresenter.createGroupChatRoom();
-//        } else if (item.getItemId() == R.id.logout) {
-//            new AlertDialog.Builder(this)
-//                    .setTitle("Logout")
-//                    .setMessage("Are you sure wants to logout?")
-//                    .setPositiveButton("Logout", (dialog, which) -> homePresenter.logout())
-//                    .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
-//                    .show();
-//        }
-//        return super.onOptionsItemSelected(item);
-//    }
 
     @Override
     public void showChatRooms(List<QiscusChatRoom> chatRooms) {

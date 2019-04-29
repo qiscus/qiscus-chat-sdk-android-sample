@@ -45,7 +45,7 @@ public class ContactActivity extends AppCompatActivity implements ContactPresent
         contactPresenter = new ContactPresenter(this,
                 MyApplication.getInstance().getComponent().getUserRepository(),
                 MyApplication.getInstance().getComponent().getChatRoomRepository());
-        contactPresenter.loadContacts();
+        contactPresenter.loadContacts(1,100, "");
     }
 
     @Override
@@ -57,7 +57,6 @@ public class ContactActivity extends AppCompatActivity implements ContactPresent
     public void showChatRoomPage(QiscusChatRoom chatRoom) {
         startActivity(ChatRoomActivity.generateIntent(this, chatRoom));
     }
-
 
 
     @Override

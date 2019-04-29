@@ -24,9 +24,12 @@ public class ContactPresenter {
         this.chatRoomRepository = chatRoomRepository;
     }
 
-    public void loadContacts() {
-        userRepository.getUsers(users -> view.showContacts(users),
-                throwable -> view.showErrorMessage(throwable.getMessage()));
+    public void loadContacts(long page, int limit, String query) {
+        userRepository.getUsers(page, limit, query, users -> {
+            view.showContacts(users);
+        }, throwable -> {
+            view.showErrorMessage(throwable.getMessage());
+        });
     }
 
     public void createRoom(User contact) {
