@@ -358,7 +358,7 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
             message.setText(comment.getMessage());
             QiscusChatRoom chatRoom = QiscusCore.getDataStore().getChatRoom(comment.getRoomId());
 
-            if (sender != null) {
+            if (sender != null && chatRoom != null) {
                 if (chatRoom.isGroup() == false) {
                     sender.setVisibility(View.GONE);
                 } else {
