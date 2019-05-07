@@ -43,7 +43,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'id.zelory:compressor:2.1.0'
     implementation 'com.android.support:multidex:1.0.3'
-    api 'com.qiscus.sdk:chat-core:1.2.6'
+    api 'com.qiscus.sdk:chat-core:1.2.8'
 
     /**
      * Image utils
