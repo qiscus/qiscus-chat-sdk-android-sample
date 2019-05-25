@@ -86,7 +86,7 @@
         />
 
     <LinearLayout
-        android:id="@+id/ln_create_group_chat"
+        android:id="@+id/ll_create_group_chat"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"

@@ -6,6 +6,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
+import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.qiscus.mychatui.MyApplication;
@@ -15,8 +17,13 @@ import com.qiscus.mychatui.presenter.ContactPresenter;
 import com.qiscus.mychatui.ui.adapter.ContactAdapter;
 import com.qiscus.mychatui.ui.adapter.OnItemClickListener;
 import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
+import com.qiscus.sdk.chat.core.data.remote.QiscusApi;
 
+import java.util.Arrays;
 import java.util.List;
+
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 /**
  * Created on : January 30, 2018
@@ -28,6 +35,7 @@ public class ContactActivity extends AppCompatActivity implements ContactPresent
     private RecyclerView recyclerView;
     private ContactAdapter contactAdapter;
     private SearchView searchView;
+    private LinearLayout llCreateGroupChat;
 
     private ContactPresenter contactPresenter;
 
@@ -39,6 +47,7 @@ public class ContactActivity extends AppCompatActivity implements ContactPresent
         findViewById(R.id.back).setOnClickListener(v -> onBackPressed());
         searchView = (SearchView) findViewById(R.id.search_view_users);
         recyclerView = findViewById(R.id.recyclerview);
+        llCreateGroupChat = findViewById(R.id.ll_create_group_chat);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setHasFixedSize(true);
@@ -50,6 +59,13 @@ public class ContactActivity extends AppCompatActivity implements ContactPresent
                 MyApplication.getInstance().getComponent().getUserRepository(),
                 MyApplication.getInstance().getComponent().getChatRoomRepository());
         contactPresenter.loadContacts(1,100, "");
+
+        llCreateGroupChat.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                createGroupChat();
+            }
+        });
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -89,5 +105,24 @@ public class ContactActivity extends AppCompatActivity implements ContactPresent
     @Override
     public void onItemClick(int position) {
         contactPresenter.createRoom(contactAdapter.getData().get(position));
+    }
+
+    //while is hardcode to create group chat, will change in next update
+    public void createGroupChat() {
+        String[] userID = {
+                "crowdid92",
+                "crowdid93",
+                "crowdid95"
+        };
+        QiscusApi.getInstance().createGroupChatRoom("room name 1", Arrays.asList(userID),null,null)
+                .subscribeOn(Schedulers.io()) //need to run this task on IO thread
+                .observeOn(AndroidSchedulers.mainThread()) //deliver result on main thread or UI thread
+                .subscribe(qiscusChatRoom -> {
+                    // on success
+                    startActivity(GroupChatRoomActivity.generateIntent(this, qiscusChatRoom));
+                }, throwable -> {
+                    // on error
+                    throwable.printStackTrace();
+                });
     }
 }
