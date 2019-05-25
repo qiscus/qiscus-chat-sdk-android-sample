@@ -22,5 +22,6 @@
     <color name="deliver_message">#757575</color>
     <color name="read_message">#94CA62</color>
     <color name="dateBackground">#E0E0E0</color>
+    <color name="qiscus_white_grey">#FAFAFA</color>
 
 </resources>

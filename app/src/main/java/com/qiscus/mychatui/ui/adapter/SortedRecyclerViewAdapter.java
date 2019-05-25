@@ -126,5 +126,9 @@ public abstract class SortedRecyclerViewAdapter<Item, VH extends RecyclerView.Vi
         });
     }
 
+    public void clear() {
+        data.clear();
+    }
+
 
 }

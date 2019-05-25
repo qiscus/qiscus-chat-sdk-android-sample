@@ -20,7 +20,6 @@ import com.qiscus.mychatui.ui.adapter.OnItemClickListener;
 import com.qiscus.nirmana.Nirmana;
 import com.qiscus.sdk.chat.core.QiscusCore;
 import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
-import com.qiscus.sdk.chat.core.data.model.QiscusComment;
 import com.qiscus.sdk.chat.core.event.QiscusCommentReceivedEvent;
 
 import org.greenrobot.eventbus.EventBus;
@@ -124,30 +123,8 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
     }
 
     @Override
-    public void showContactPage() {
-        startActivity(new Intent(this, ContactActivity.class));
-    }
-
-    @Override
-    public void showSelectContactPage() {
-        startActivity(new Intent(this, SelectContactActivity.class));
-    }
-
-    @Override
-    public void showLoginPage() {
-        Intent intent = new Intent(this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-    }
-
-    @Override
     public void showErrorMessage(String errorMessage) {
         Toast.makeText(this, errorMessage, Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void showTesting(QiscusComment qiscusComment) {
-        Toast.makeText(this, "hai dari subscribe", Toast.LENGTH_SHORT).show();
     }
 
     @Override

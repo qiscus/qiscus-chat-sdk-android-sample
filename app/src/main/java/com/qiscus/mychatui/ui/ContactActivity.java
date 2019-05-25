@@ -5,6 +5,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.widget.Toast;
 
 import com.qiscus.mychatui.MyApplication;
@@ -26,6 +27,7 @@ import java.util.List;
 public class ContactActivity extends AppCompatActivity implements ContactPresenter.View, OnItemClickListener {
     private RecyclerView recyclerView;
     private ContactAdapter contactAdapter;
+    private SearchView searchView;
 
     private ContactPresenter contactPresenter;
 
@@ -35,7 +37,9 @@ public class ContactActivity extends AppCompatActivity implements ContactPresent
         setContentView(R.layout.activity_contact);
 
         findViewById(R.id.back).setOnClickListener(v -> onBackPressed());
+        searchView = (SearchView) findViewById(R.id.search_view_users);
         recyclerView = findViewById(R.id.recyclerview);
+
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         recyclerView.setHasFixedSize(true);
         contactAdapter = new ContactAdapter(this);
@@ -46,10 +50,29 @@ public class ContactActivity extends AppCompatActivity implements ContactPresent
                 MyApplication.getInstance().getComponent().getUserRepository(),
                 MyApplication.getInstance().getComponent().getChatRoomRepository());
         contactPresenter.loadContacts(1,100, "");
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                query = query.toLowerCase();
+                contactPresenter.search(query);
+                searchView.clearFocus();
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                newText = newText.toLowerCase();
+                contactPresenter.search(newText);
+                return true;
+            }
+        });
+
     }
 
     @Override
     public void showContacts(List<User> contacts) {
+        contactAdapter.clear();
         contactAdapter.addOrUpdate(contacts);
     }
 
@@ -57,7 +80,6 @@ public class ContactActivity extends AppCompatActivity implements ContactPresent
     public void showChatRoomPage(QiscusChatRoom chatRoom) {
         startActivity(ChatRoomActivity.generateIntent(this, chatRoom));
     }
-
 
     @Override
     public void showErrorMessage(String errorMessage) {

@@ -7,6 +7,10 @@ import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
 
 import java.util.List;
 
+import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
+
 /**
  * Created on : January 30, 2018
  * Author     : zetbaitsu
@@ -17,6 +21,7 @@ public class ContactPresenter {
     private View view;
     private UserRepository userRepository;
     private ChatRoomRepository chatRoomRepository;
+    private List<User> users;
 
     public ContactPresenter(View view, UserRepository userRepository, ChatRoomRepository chatRoomRepository) {
         this.view = view;
@@ -27,9 +32,20 @@ public class ContactPresenter {
     public void loadContacts(long page, int limit, String query) {
         userRepository.getUsers(page, limit, query, users -> {
             view.showContacts(users);
+            this.users = users;
         }, throwable -> {
             view.showErrorMessage(throwable.getMessage());
         });
+    }
+
+    public void search(String keyword) {
+        Observable.from(users)
+                .filter(user -> user.getName().toLowerCase().contains(keyword.toLowerCase()))
+                .toList()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(users -> view.showContacts(users), throwable -> view.showErrorMessage(throwable.getMessage()));
+
     }
 
     public void createRoom(User contact) {

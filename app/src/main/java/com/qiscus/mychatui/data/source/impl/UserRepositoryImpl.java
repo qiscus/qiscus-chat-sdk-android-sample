@@ -71,20 +71,14 @@ public class UserRepositoryImpl implements UserRepository {
     public void getUsers(long page, int limit, String query, Action<List<User>> onSuccess, Action<Throwable> onError) {
         QiscusApi.getInstance().getUsers(page, limit, query)
                 .flatMap(Observable::from)
+                .filter(user -> !user.equals(getCurrentUser()))
+                .filter(user -> !user.getUsername().equals(""))
                 .map(this::mapFromQiscusAccount)
                 .toList()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(onSuccess::call, onError::call);
 
-
-//        getUsersObservable()
-//                .flatMap(Observable::from)
-//                .filter(user -> !user.equals(getCurrentUser()))
-//                .toList()
-//                .subscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(onSuccess::call, onError::call);
     }
 
     @Override
