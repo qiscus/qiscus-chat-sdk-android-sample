@@ -18,8 +18,12 @@ import com.qiscus.nirmana.Nirmana;
 import com.qiscus.sdk.chat.core.QiscusCore;
 import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
 import com.qiscus.sdk.chat.core.data.model.QiscusRoomMember;
+import com.qiscus.sdk.chat.core.data.remote.QiscusApi;
 
 import java.util.List;
+
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 /**
  * Created on : January 30, 2018
@@ -51,13 +55,13 @@ public class GroupChatRoomActivity extends AppCompatActivity implements ChatRoom
             finish();
             return;
         }
+        setParticipants();
 
         findViewById(R.id.back).setOnClickListener(v -> onBackPressed());
         ImageView avatar = findViewById(R.id.avatar);
         TextView roomName = findViewById(R.id.room_name);
         LinearLayout linTitleSubtitle = findViewById(R.id.linTitleSubtitle);
         membersView = findViewById(R.id.members);
-        membersView.setText(generateSubtitle(chatRoom.getMember()));
 
         Nirmana.getInstance().get()
                 .setDefaultRequestOptions(new RequestOptions()
@@ -81,6 +85,18 @@ public class GroupChatRoomActivity extends AppCompatActivity implements ChatRoom
                 finish();
             }
         });
+    }
+
+    private void setParticipants() {
+        QiscusApi.getInstance().getRoomMembers(chatRoom.getUniqueId())
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(participants -> {
+                    chatRoom.setMember(participants);
+                    membersView.setText(generateSubtitle(chatRoom.getMember()));
+                }, throwable -> {
+                    throwable.printStackTrace();
+                });
     }
 
     private String generateSubtitle(List<QiscusRoomMember> members) {

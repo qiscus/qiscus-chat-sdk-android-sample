@@ -16,12 +16,11 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".ui.EditRoomNameActivity"/>
+        <activity android:name=".ui.EditRoomNameActivity" />
         <activity android:name=".ui.RoomInfoActivity" />
         <activity android:name=".ui.EditNameActivity" />
         <activity android:name=".ui.ProfileActivity" />
-        <activity
-            android:name=".ui.LoginActivity">
+        <activity android:name=".ui.LoginActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -41,6 +40,9 @@
         <activity android:name=".ui.ChatRoomActivity" />
         <activity android:name=".ui.QiscusSendPhotoConfirmationActivity" />
         <activity android:name=".ui.GroupChatRoomActivity" />
+        <activity
+            android:name=".ui.groupchatcreation.GroupChatCreationActivity"/>
+        <activity android:name=".ui.addmember.AddGroupMemberActivity" />
 
         <receiver
             android:name=".service.NotificationClickReceiver"

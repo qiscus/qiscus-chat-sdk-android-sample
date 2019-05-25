@@ -19,4 +19,6 @@
     <string name="qiscus_chat_error_failed_read_picture">Failed to read picture data!</string>
     <string name="qiscus_chat_error_failed_open_file">Failed to open file!</string>
     <string name="qiscus_chat_error_failed_write">Failed to write temporary picture!</string>
+    <string name="group_name_hint">Type group name here</string>
+    <string name="group_upload_text">Give your group a name and add optional photo</string>
 </resources>

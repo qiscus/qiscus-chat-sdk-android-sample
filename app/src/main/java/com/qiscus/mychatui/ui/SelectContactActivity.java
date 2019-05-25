@@ -48,7 +48,7 @@ public class SelectContactActivity extends AppCompatActivity implements SelectCo
 
     @Override
     public void showContacts(List<User> contacts) {
-        selectContactAdapter.addOrUpdate(contacts);
+        selectContactAdapter.addOrUpdateItem(contacts);
     }
 
     @Override

@@ -73,4 +73,31 @@ public class ChatRoomRepositoryImpl implements ChatRoomRepository {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(onSuccess::call, onError::call);
     }
+
+    @Override
+    public void addParticipant(long roomId, List<User> members, Action<Void> onSuccess, Action<Throwable> onError) {
+        List<String> ids = new ArrayList<>();
+        for (User member : members) {
+            ids.add(member.getId());
+        }
+        QiscusApi.getInstance().addRoomMember(roomId, ids)
+                .doOnNext(chatRoom -> QiscusCore.getDataStore().addOrUpdate(chatRoom))
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(chatRoom -> onSuccess.call(null), onError::call);
+    }
+
+    @Override
+    public void removeParticipant(long roomId, List<User> members, Action<Void> onSuccess, Action<Throwable> onError) {
+        List<String> ids = new ArrayList<>();
+        for (User member : members) {
+            ids.add(member.getId());
+        }
+        QiscusApi.getInstance().addRoomMember(roomId, ids)
+                .doOnNext(chatRoom -> QiscusCore.getDataStore().addOrUpdate(chatRoom))
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(chatRoom -> onSuccess.call(null), onError::call);
+    }
+
 }

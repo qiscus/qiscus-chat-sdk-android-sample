@@ -3,6 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
+    android:background="@color/qiscus_white"
     android:padding="12dp">
 
     <ImageView
@@ -12,12 +13,35 @@
 
     <TextView
         android:id="@+id/name"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_weight="4"
         android:layout_gravity="center_vertical"
-        android:layout_marginLeft="12dp"
-        android:layout_marginStart="12dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginStart="8dp"
         android:textColor="#000"
         android:textSize="18sp" />
+
+    <ImageView
+        android:id="@+id/img_view_check"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/bg_circle_green"
+        android:src="@drawable/ic_check"
+        android:layout_gravity="center_vertical"
+        android:visibility="gone"
+        />
+
+    <ImageView
+        android:id="@+id/img_remove_contact"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:src="@drawable/ic_delete_circle"
+        android:layout_gravity="center_vertical"
+        android:visibility="gone"
+        />
 
 </LinearLayout>

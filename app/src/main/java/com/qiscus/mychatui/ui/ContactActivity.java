@@ -1,5 +1,6 @@
 package com.qiscus.mychatui.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -16,14 +17,11 @@ import com.qiscus.mychatui.data.model.User;
 import com.qiscus.mychatui.presenter.ContactPresenter;
 import com.qiscus.mychatui.ui.adapter.ContactAdapter;
 import com.qiscus.mychatui.ui.adapter.OnItemClickListener;
+import com.qiscus.mychatui.ui.groupchatcreation.GroupChatCreationActivity;
 import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
-import com.qiscus.sdk.chat.core.data.remote.QiscusApi;
 
-import java.util.Arrays;
 import java.util.List;
 
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
 
 /**
  * Created on : January 30, 2018
@@ -107,22 +105,8 @@ public class ContactActivity extends AppCompatActivity implements ContactPresent
         contactPresenter.createRoom(contactAdapter.getData().get(position));
     }
 
-    //while is hardcode to create group chat, will change in next update
     public void createGroupChat() {
-        String[] userID = {
-                "crowdid92",
-                "crowdid93",
-                "crowdid95"
-        };
-        QiscusApi.getInstance().createGroupChatRoom("room name 1", Arrays.asList(userID),null,null)
-                .subscribeOn(Schedulers.io()) //need to run this task on IO thread
-                .observeOn(AndroidSchedulers.mainThread()) //deliver result on main thread or UI thread
-                .subscribe(qiscusChatRoom -> {
-                    // on success
-                    startActivity(GroupChatRoomActivity.generateIntent(this, qiscusChatRoom));
-                }, throwable -> {
-                    // on error
-                    throwable.printStackTrace();
-                });
+        Intent intent = new Intent(this, GroupChatCreationActivity.class);
+        startActivity(intent);
     }
 }

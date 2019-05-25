@@ -24,6 +24,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.qiscus.mychatui.R;
 import com.qiscus.mychatui.ui.adapter.OnItemClickListener;
 import com.qiscus.mychatui.ui.adapter.ParticipantsRoomInfoAdapter;
+import com.qiscus.mychatui.ui.addmember.AddGroupMemberActivity;
 import com.qiscus.mychatui.ui.view.QiscusProgressView;
 import com.qiscus.mychatui.util.QiscusImageUtil;
 import com.qiscus.mychatui.util.QiscusPermissionsUtil;
@@ -39,18 +40,19 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import id.zelory.compressor.Compressor;
-import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
 public class RoomInfoActivity extends AppCompatActivity implements OnItemClickListener {
-    private static final String CHAT_ROOM_KEY = "extra_chat_room";
+    private static final String CHAT_ROOM_DATA = "chat_room_data";
     private QiscusChatRoom chatRoom;
+    private static final int RC_ADD_PARTICIPANTS = 133;
 
-    TextView tvRoomName;
-    ImageView ivEditRoomName,ivEditAvatarRoom,ivAvatar,bt_back;
-    RecyclerView recyclerView;
-    LinearLayout linUI;
+    private TextView tvRoomName;
+    private ImageView ivEditRoomName, ivEditAvatarRoom, ivAvatar, bt_back;
+    private RecyclerView recyclerView;
+    private LinearLayout linUI;
+    private LinearLayout llAddParticipant;
     private QiscusProgressView progress;
     private ParticipantsRoomInfoAdapter participantAdapter;
 
@@ -69,9 +71,10 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
             "android.permission.READ_EXTERNAL_STORAGE",
     };
 
+
     public static Intent generateIntent(Context context, QiscusChatRoom chatRoom) {
         Intent intent = new Intent(context, RoomInfoActivity.class);
-        intent.putExtra(CHAT_ROOM_KEY, chatRoom);
+        intent.putExtra(CHAT_ROOM_DATA, chatRoom);
         return intent;
     }
 
@@ -79,8 +82,9 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_room_info);
+        resolveChatRoom(savedInstanceState);
 
-        chatRoom = getIntent().getParcelableExtra(CHAT_ROOM_KEY);
+        chatRoom = getIntent().getParcelableExtra(CHAT_ROOM_DATA);
         if (chatRoom == null) {
             finish();
             return;
@@ -91,7 +95,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
 
     }
 
-    private void setupUI(){
+    private void setupUI() {
         ivEditAvatarRoom = findViewById(R.id.ivEditAvatarRoom);
         ivEditRoomName = findViewById(R.id.ivEditRoomName);
         tvRoomName = findViewById(R.id.tvRoomName);
@@ -99,6 +103,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
         bt_back = findViewById(R.id.bt_back);
         linUI = findViewById(R.id.linUI);
         progress = findViewById(R.id.qiscusCircleProgress);
+        llAddParticipant = findViewById(R.id.ll_add_participant);
 
         recyclerView = findViewById(R.id.recycleViewRoomInfo);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -210,6 +215,13 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
             }
         });
 
+        llAddParticipant.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivityForResult(AddGroupMemberActivity.generateIntent(RoomInfoActivity.this, chatRoom), RC_ADD_PARTICIPANTS);
+            }
+        });
+
     }
 
     @Override
@@ -230,6 +242,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
                     participantAdapter.remove(position);
                 }, throwable -> {
                     //error
+                    Toast.makeText(this, throwable.getMessage(), Toast.LENGTH_SHORT).show();
                 });
 
     }
@@ -307,8 +320,22 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
                 Toast.makeText(this, "Failed to read picture data!", Toast.LENGTH_SHORT).show();
                 e.printStackTrace();
             }
+        } else if (requestCode == RC_ADD_PARTICIPANTS && resultCode == Activity.RESULT_OK) {
+            if (data != null) {
+                chatRoom = data.getParcelableExtra(CHAT_ROOM_DATA);
+                loadData();
+            }
+
         }
     }
+
+    protected void resolveChatRoom(Bundle savedInstanceState) {
+        chatRoom = getIntent().getParcelableExtra(CHAT_ROOM_DATA);
+        if (chatRoom == null && savedInstanceState != null) {
+            chatRoom = savedInstanceState.getParcelable(CHAT_ROOM_DATA);
+        }
+    }
+
 
     public void updateAvatar(File file) {
         File compressedFile = file;
@@ -328,7 +355,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
             return;
         }
 
-        Subscription subscription = QiscusApi.getInstance()
+        QiscusApi.getInstance()
                 .uploadFile(compressedFile, percentage ->
                 {
                     //show percentage
@@ -343,7 +370,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(uri -> {
-                    QiscusApi.getInstance().updateChatRoom(chatRoom.getId(), null, uri.toString(),null)
+                    QiscusApi.getInstance().updateChatRoom(chatRoom.getId(), null, uri.toString(), null)
                             .subscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(newChatroom -> {
@@ -358,7 +385,6 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
                     progress.setVisibility(View.GONE);
                     Toast.makeText(this, "Failed to update avatar room!", Toast.LENGTH_SHORT).show();
                 });
-
     }
 
 }

@@ -26,8 +26,6 @@ public class SelectContactPresenter {
                 }, throwable -> {
                     view.showErrorMessage(throwable.getMessage());
                 });
-//        userRepository.getUsers(users -> view.showContacts(users),
-//                throwable -> view.showErrorMessage(throwable.getMessage()));
     }
 
     public void selectContacts(List<User> selectedContacts) {

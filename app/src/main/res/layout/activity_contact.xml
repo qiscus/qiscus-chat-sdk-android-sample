@@ -3,9 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="@color/qiscus_white"
-    >
+    android:orientation="vertical">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/app_bar_layout"
@@ -36,10 +35,10 @@
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="16dp"
-                    android:layout_marginLeft="16dp"
-                    android:layout_marginRight="16dp"
                     android:layout_marginStart="16dp"
+                    android:layout_marginLeft="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:layout_marginRight="16dp"
                     android:layout_weight="1"
                     android:orientation="vertical">
 
@@ -68,9 +67,9 @@
                     android:paddingLeft="12dp"
                     android:paddingRight="12dp"
                     android:text="Next"
-                    android:visibility="invisible"
                     android:textColor="@color/qiscus_white"
-                    android:textSize="17sp" />
+                    android:textSize="17sp"
+                    android:visibility="gone" />
 
             </LinearLayout>
 
@@ -81,34 +80,29 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:background="@color/qiscus_light_grey"
-
-        />
+        android:background="@color/qiscus_light_grey" />
 
     <LinearLayout
         android:id="@+id/ll_create_group_chat"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
         android:background="@color/qiscus_white"
-        android:padding="8dp"
-        >
+        android:orientation="horizontal"
+        android:padding="8dp">
 
         <ImageButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/search"
             android:background="@color/qiscus_white"
             android:padding="8dp"
-            />
+            android:src="@drawable/search" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Create Group Chat"
-            android:textSize="18sp"
             android:layout_gravity="center"
-            />
+            android:text="Create Group Chat"
+            android:textSize="18sp" />
 
     </LinearLayout>
 
@@ -117,18 +111,15 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:queryHint="Search username"
-        app:iconifiedByDefault="false"
-        android:background="@color/qiscus_white"
-        />
+        app:iconifiedByDefault="false" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Contacts"
-        android:padding="12dp"
-        android:textAllCaps="true"
         android:background="@color/qiscus_white_grey"
-        />
+        android:padding="12dp"
+        android:text="Contacts"
+        android:textAllCaps="true" />
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/recyclerview"

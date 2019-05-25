@@ -52,25 +52,11 @@
                     android:gravity="center"
                     android:maxLines="1"
                     android:text="Room Info"
+                    android:layout_marginRight="24dp"
                     android:textAppearance="@style/TextAppearance.AppCompat.Title"
                     android:textColor="@color/qiscus_primary_text" />
 
             </LinearLayout>
-
-            <FrameLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content">
-
-                <ImageView
-                    android:id="@+id/bt_back2"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:layout_gravity="center_vertical"
-                    android:padding="6dp"
-                    android:src="@drawable/ic_back"
-                    android:visibility="invisible" />
-
-            </FrameLayout>
 
 
         </LinearLayout>
@@ -106,12 +92,11 @@
 
             <TextView
                 android:id="@+id/tvRoomName"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
                 android:layout_marginBottom="7dp"
                 android:layout_weight="1"
-                android:text="TextView"
                 android:textColor="@color/qiscus_white"
                 android:textSize="18sp" />
 
@@ -121,6 +106,7 @@
                 android:layout_height="30dp"
                 android:layout_margin="10dp"
                 android:clickable="true"
+                android:focusable="true"
                 android:tint="@color/qiscus_white"
                 app:srcCompat="@drawable/ic_edit" />
 
@@ -130,6 +116,7 @@
                 android:layout_height="30dp"
                 android:layout_margin="10dp"
                 android:clickable="true"
+                android:focusable="true"
                 android:tint="@color/qiscus_white"
                 app:srcCompat="@drawable/ic_gallery" />
 
@@ -143,12 +130,40 @@
         android:orientation="vertical">
 
         <TextView
-            android:id="@+id/textView13"
+            android:id="@+id/tv_participant"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="20dp"
+            android:layout_margin="16dp"
             android:text="Participants"
-            android:textStyle="bold" />
+            android:textSize="12sp"
+            android:textAllCaps="true"
+            />
+
+        <LinearLayout
+            android:id="@+id/ll_add_participant"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="14dp"
+            android:background="@color/qiscus_white"
+            >
+
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_contact"
+                />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Add Participant"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="16dp"
+                android:textSize="16sp"
+                />
+
+        </LinearLayout>
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/recycleViewRoomInfo"

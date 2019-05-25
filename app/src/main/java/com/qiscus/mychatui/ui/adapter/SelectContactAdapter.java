@@ -54,7 +54,7 @@ public class SelectContactAdapter extends SortedRecyclerViewAdapter<SelectContac
         holder.bind(getData().get(position));
     }
 
-    public void addOrUpdate(List<User> contacts) {
+    public void addOrUpdateItem(List<User> contacts) {
         for (User contact : contacts) {
             SelectableUser selectableUser = new SelectableUser(contact);
             int index = findPosition(selectableUser);

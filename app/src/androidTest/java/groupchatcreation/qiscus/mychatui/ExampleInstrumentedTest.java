@@ -1,4 +1,4 @@
-package com.qiscus.mychatui;
+package groupchatcreation.qiscus.mychatui;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;

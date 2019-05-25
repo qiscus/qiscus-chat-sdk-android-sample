@@ -18,4 +18,8 @@ public interface ChatRoomRepository {
     void createChatRoom(User user, Action<QiscusChatRoom> onSuccess, Action<Throwable> onError);
 
     void createGroupChatRoom(String name, List<User> members, Action<QiscusChatRoom> onSuccess, Action<Throwable> onError);
+
+    void addParticipant(long roomId, List<User> members, Action<Void> onSuccess, Action<Throwable> onError);
+
+    void removeParticipant(long roomId, List<User> members, Action<Void> onSuccess, Action<Throwable> onError);
 }
