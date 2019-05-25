@@ -9,6 +9,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -42,6 +43,7 @@ public class AddGroupMemberActivity extends AppCompatActivity implements AddGrou
     private AddGroupMemberPresenter presenter;
     private ImageView imgNext;
     private ContactAdapter contactAdapter;
+    private SearchView searchView;
 
     public static Intent generateIntent(Context context, QiscusChatRoom qiscusChatRoom) {
         Intent intent = new Intent(context, AddGroupMemberActivity.class);
@@ -68,6 +70,7 @@ public class AddGroupMemberActivity extends AppCompatActivity implements AddGrou
         contactRecyclerView.setHasFixedSize(true);
 
         imgNext = findViewById(R.id.img_next);
+        searchView = (SearchView) findViewById(R.id.search_view_users);
 
         contactAdapter = new ContactAdapter(this, position -> {
             presenter.selectContact(contactAdapter.getData().get(position));
@@ -102,6 +105,23 @@ public class AddGroupMemberActivity extends AppCompatActivity implements AddGrou
             @Override
             public void onClick(View view) {
                 finish();
+            }
+        });
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                query = query.toLowerCase();
+                presenter.search(query);
+                searchView.clearFocus();
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                newText = newText.toLowerCase();
+                presenter.search(newText);
+                return true;
             }
         });
     }

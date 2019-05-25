@@ -61,7 +61,7 @@ public class AddGroupMemberPresenter {
                 .toList()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(users -> view.showContacts(contacts), throwable -> view.showErrorMessage(throwable.getMessage()));
+                .subscribe(users -> view.showContacts(users), throwable -> view.showErrorMessage(throwable.getMessage()));
 
     }
 
