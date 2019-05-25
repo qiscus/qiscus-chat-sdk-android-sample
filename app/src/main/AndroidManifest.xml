@@ -32,9 +32,6 @@
             android:name=".ui.ContactActivity"
             android:noHistory="true" />
         <activity
-            android:name=".ui.SelectContactActivity"
-            android:noHistory="true" />
-        <activity
             android:name=".ui.CreateGroupActivity"
             android:noHistory="true" />
         <activity android:name=".ui.ChatRoomActivity" />
