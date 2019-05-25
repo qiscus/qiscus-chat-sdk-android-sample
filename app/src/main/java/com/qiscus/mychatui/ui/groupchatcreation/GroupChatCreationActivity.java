@@ -75,6 +75,13 @@ public class GroupChatCreationActivity extends AppCompatActivity implements Grou
         presenter = new GroupChatCreationPresenter(this, MyApplication.getInstance().getComponent().getUserRepository());
         presenter.loadContacts(1,100, "");
 
+        findViewById(R.id.back).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
+
     }
 
     private boolean isFragmentOn() {

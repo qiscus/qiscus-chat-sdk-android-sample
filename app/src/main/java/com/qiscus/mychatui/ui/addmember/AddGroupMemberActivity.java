@@ -97,6 +97,13 @@ public class AddGroupMemberActivity extends AppCompatActivity implements AddGrou
                 }
             }
         });
+
+        findViewById(R.id.back).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
+            }
+        });
     }
 
     protected void resolveChatRoom(Bundle savedInstanceState) {

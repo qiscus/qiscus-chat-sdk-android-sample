@@ -73,6 +73,13 @@ public class GroupInfoFragment extends Fragment implements GroupInfoPresenter.Vi
             }
         });
 
+        view.findViewById(R.id.back).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getActivity().finish();
+            }
+        });
+
         return view;
     }
 
