@@ -1,5 +1,7 @@
 package com.qiscus.mychatui;
 
+
+import android.annotation.SuppressLint;
 import android.support.multidex.MultiDexApplication;
 
 import com.qiscus.jupuk.Jupuk;
