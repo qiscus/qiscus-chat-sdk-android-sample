@@ -81,7 +81,7 @@
                 android:layout_height="30dp"
                 android:src="@drawable/ic_file" />
 
-            <groupchatcreation.qiscus.mychatui.ui.view.QiscusCircleProgress
+            <com.qiscus.mychatui.ui.view.QiscusCircleProgress
                 android:id="@+id/progress"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
