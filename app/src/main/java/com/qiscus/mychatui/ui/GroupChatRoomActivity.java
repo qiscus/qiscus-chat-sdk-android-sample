@@ -3,8 +3,8 @@ package com.qiscus.mychatui.ui;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
@@ -31,7 +31,7 @@ import rx.schedulers.Schedulers;
  * Name       : Zetra
  * GitHub     : https://github.com/zetbaitsu
  */
-public class GroupChatRoomActivity extends AppCompatActivity implements ChatRoomFragment.UserTypingListener {
+public class GroupChatRoomActivity extends AppCompatActivity implements ChatRoomFragment.UserTypingListener, QiscusApi.MetaRoomMembersListener {
     private static final String CHAT_ROOM_KEY = "extra_chat_room";
 
     private TextView membersView;
@@ -88,7 +88,7 @@ public class GroupChatRoomActivity extends AppCompatActivity implements ChatRoom
     }
 
     private void setParticipants() {
-        QiscusApi.getInstance().getRoomMembers(chatRoom.getUniqueId())
+        QiscusApi.getInstance().getRoomMembers(chatRoom.getUniqueId(),this)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(participants -> {
@@ -146,5 +146,10 @@ public class GroupChatRoomActivity extends AppCompatActivity implements ChatRoom
             }
         }
         return null;
+    }
+
+    @Override
+    public void onMetaReceived(int currentOffset, int perPage, int total) {
+
     }
 }

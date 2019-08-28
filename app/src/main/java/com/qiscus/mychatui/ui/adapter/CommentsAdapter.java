@@ -1,15 +1,10 @@
 package com.qiscus.mychatui.ui.adapter;
 
-import android.Manifest;
 import android.content.Context;
-import android.content.ContextWrapper;
-import android.graphics.Bitmap;
-import android.media.MediaScannerConnection;
-import android.net.Uri;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
-import android.support.v7.widget.RecyclerView;
+
+import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,7 +16,6 @@ import android.widget.Toast;
 
 import com.bumptech.glide.request.RequestOptions;
 import com.qiscus.mychatui.R;
-import com.qiscus.mychatui.ui.fragment.ChatRoomFragment;
 import com.qiscus.mychatui.ui.view.QiscusProgressView;
 import com.qiscus.mychatui.util.DateUtil;
 import com.qiscus.mychatui.util.QiscusImageUtil;
@@ -32,14 +26,10 @@ import com.qiscus.sdk.chat.core.data.model.QiscusComment;
 import com.qiscus.sdk.chat.core.data.remote.QiscusApi;
 import com.qiscus.sdk.chat.core.util.QiscusAndroidUtil;
 import com.qiscus.sdk.chat.core.util.QiscusDateUtil;
-import com.qiscus.sdk.chat.core.util.QiscusFileUtil;
-import com.qiscus.sdk.chat.core.util.QiscusTextUtil;
 
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.List;
 
 import rx.android.schedulers.AndroidSchedulers;

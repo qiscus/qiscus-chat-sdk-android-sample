@@ -1,7 +1,7 @@
 package com.qiscus.mychatui.util;
 
 import android.content.res.Resources;
-import android.support.annotation.RestrictTo;
+import androidx.annotation.RestrictTo;
 
 /**
  * @author Yuana andhikayuana@gmail.com

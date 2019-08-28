@@ -1,1 +1,3 @@
 include ':app'
+include 'chat-core'
+project(':chat-core').projectDir = new File('/Users/qiscus/Android/qiscus-sdk-android/chat-core')

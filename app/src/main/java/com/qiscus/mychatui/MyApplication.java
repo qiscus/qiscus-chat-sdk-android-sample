@@ -1,8 +1,7 @@
 package com.qiscus.mychatui;
 
 
-import android.annotation.SuppressLint;
-import android.support.multidex.MultiDexApplication;
+import androidx.multidex.MultiDexApplication;
 
 import com.qiscus.jupuk.Jupuk;
 import com.qiscus.mychatui.util.PushNotificationUtil;

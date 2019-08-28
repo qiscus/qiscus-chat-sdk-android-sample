@@ -6,11 +6,11 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
-import android.support.v4.content.FileProvider;
-import android.support.v7.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -43,7 +43,7 @@ import id.zelory.compressor.Compressor;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class RoomInfoActivity extends AppCompatActivity implements OnItemClickListener {
+public class RoomInfoActivity extends AppCompatActivity implements OnItemClickListener, QiscusApi.MetaRoomMembersListener {
     private static final String CHAT_ROOM_DATA = "chat_room_data";
     private QiscusChatRoom chatRoom;
     private static final int RC_ADD_PARTICIPANTS = 133;
@@ -272,7 +272,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
                 .load(chatRoom.getAvatarUrl())
                 .into(ivAvatar);
 
-        QiscusApi.getInstance().getRoomMembers(chatRoom.getUniqueId())
+        QiscusApi.getInstance().getRoomMembers(chatRoom.getUniqueId(),this)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(participants -> {
@@ -387,4 +387,8 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
                 });
     }
 
+    @Override
+    public void onMetaReceived(int currentOffset, int perPage, int total) {
+
+    }
 }

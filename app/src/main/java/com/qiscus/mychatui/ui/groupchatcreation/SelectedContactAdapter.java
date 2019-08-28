@@ -1,7 +1,7 @@
 package com.qiscus.mychatui.ui.groupchatcreation;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 

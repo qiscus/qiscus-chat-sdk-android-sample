@@ -2,7 +2,7 @@ package com.qiscus.mychatui.data.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 /**
  * Created on : January 30, 2018

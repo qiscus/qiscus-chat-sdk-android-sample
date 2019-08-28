@@ -1,6 +1,6 @@
 package com.qiscus.mychatui.ui;
 
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -9,7 +9,6 @@ import android.widget.ImageView;
 import com.qiscus.mychatui.R;
 import com.qiscus.sdk.chat.core.QiscusCore;
 import com.qiscus.sdk.chat.core.data.model.QiscusAccount;
-import com.qiscus.sdk.chat.core.data.remote.QiscusApi;
 
 public class EditNameActivity extends AppCompatActivity {
     EditText etName;

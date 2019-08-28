@@ -1,7 +1,7 @@
 package com.qiscus.mychatui.ui.adapter;
 
-import android.support.v7.util.SortedList;
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.SortedList;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.View;
 
 import java.util.List;

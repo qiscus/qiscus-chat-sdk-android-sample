@@ -1,7 +1,7 @@
 package com.qiscus.mychatui.presenter;
 
-import android.support.v4.util.Pair;
-import android.util.Log;
+import androidx.core.util.Pair;
+
 import android.webkit.MimeTypeMap;
 
 import com.qiscus.mychatui.R;
