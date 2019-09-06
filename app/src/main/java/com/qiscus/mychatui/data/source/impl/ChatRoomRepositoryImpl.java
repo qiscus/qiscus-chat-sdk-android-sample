@@ -33,7 +33,7 @@ public class ChatRoomRepositoryImpl implements ChatRoomRepository {
                 .subscribe(onSuccess::call, onError::call);
 
         QiscusApi.getInstance()
-                .getChatRooms(true,false,false,1,100)
+                .getAllChatRooms(true,false,false,1,100)
                 .flatMap(Observable::from)
                 .doOnNext(qiscusChatRoom -> QiscusCore.getDataStore().addOrUpdate(qiscusChatRoom))
                 .filter(chatRoom -> chatRoom.getLastComment().getId() != 0)
