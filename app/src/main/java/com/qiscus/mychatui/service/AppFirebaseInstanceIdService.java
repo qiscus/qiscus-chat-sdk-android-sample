@@ -16,7 +16,7 @@ public class AppFirebaseInstanceIdService extends FirebaseInstanceIdService {
 
         // Notify Qiscus about FCM token
         String refreshedToken = FirebaseInstanceId.getInstance().getToken();
-        QiscusCore.setFcmToken(refreshedToken);
+        QiscusCore.registerDeviceToken(refreshedToken);
 
         //TODO Application part here
     }

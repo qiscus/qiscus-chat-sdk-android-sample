@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.provider.MediaStore;
+
+import androidx.annotation.NonNull;
 import androidx.core.content.FileProvider;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
@@ -38,12 +40,13 @@ import com.qiscus.sdk.chat.core.util.QiscusFileUtil;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 import id.zelory.compressor.Compressor;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class RoomInfoActivity extends AppCompatActivity implements OnItemClickListener, QiscusApi.MetaRoomMembersListener {
+public class RoomInfoActivity extends AppCompatActivity implements OnItemClickListener, QiscusApi.MetaRoomMembersListener, QiscusPermissionsUtil.PermissionCallbacks {
     private static final String CHAT_ROOM_DATA = "chat_room_data";
     private QiscusChatRoom chatRoom;
     private static final int RC_ADD_PARTICIPANTS = 133;
@@ -272,7 +275,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
                 .load(chatRoom.getAvatarUrl())
                 .into(ivAvatar);
 
-        QiscusApi.getInstance().getRoomMembers(chatRoom.getUniqueId(),this)
+        QiscusApi.getInstance().getParticipants(chatRoom.getUniqueId(),0, "asc", this)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(participants -> {
@@ -300,6 +303,25 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
             QiscusPermissionsUtil.requestPermissions(this, getString(R.string.qiscus_permission_request_title),
                     RC_CAMERA_PERMISSION, CAMERA_PERMISSION);
         }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        QiscusPermissionsUtil.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
+    }
+
+    @Override
+    public void onPermissionsGranted(int requestCode, List<String> perms) {
+        if (requestCode == REQUEST_FILE_PERMISSION) {
+            pickImage();
+        }
+    }
+
+    @Override
+    public void onPermissionsDenied(int requestCode, List<String> perms) {
+        QiscusPermissionsUtil.checkDeniedPermissionsNeverAskAgain(this, getString(R.string.qiscus_permission_message),
+                R.string.qiscus_grant, R.string.qiscus_denny, perms);
     }
 
     @Override
@@ -356,7 +378,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
         }
 
         QiscusApi.getInstance()
-                .uploadFile(compressedFile, percentage ->
+                .upload(compressedFile, percentage ->
                 {
                     //show percentage
                     int i = (int) percentage;

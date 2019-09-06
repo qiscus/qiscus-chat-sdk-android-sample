@@ -88,7 +88,8 @@ public class GroupChatRoomActivity extends AppCompatActivity implements ChatRoom
     }
 
     private void setParticipants() {
-        QiscusApi.getInstance().getRoomMembers(chatRoom.getUniqueId(),this)
+        QiscusApi.getInstance().getParticipants(chatRoom.getUniqueId(),
+                0,"asc",this)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(participants -> {

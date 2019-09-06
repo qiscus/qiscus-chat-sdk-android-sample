@@ -6,6 +6,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
+
+import androidx.annotation.NonNull;
 import androidx.core.content.FileProvider;
 import androidx.appcompat.app.AppCompatActivity;
 import android.view.Gravity;
@@ -32,13 +34,14 @@ import com.qiscus.sdk.chat.core.util.QiscusFileUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import id.zelory.compressor.Compressor;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class ProfileActivity extends AppCompatActivity implements ProfilePresenter.View {
+public class ProfileActivity extends AppCompatActivity implements ProfilePresenter.View, QiscusPermissionsUtil.PermissionCallbacks {
     private LinearLayout logout, llBottom;
     private ImageView ivAvatar, ivEditName, btBack;
     private TextView tvName, tvUniqueID;
@@ -199,17 +202,36 @@ public class ProfileActivity extends AppCompatActivity implements ProfilePresent
     }
 
     private void requestReadFilePermission() {
-        if (!QiscusPermissionsUtil.hasPermissions(this, FILE_PERMISSION)) {
-            QiscusPermissionsUtil.requestPermissions(this, getString(R.string.qiscus_permission_request_title),
+        if (!QiscusPermissionsUtil.hasPermissions(ProfileActivity.this, FILE_PERMISSION)) {
+            QiscusPermissionsUtil.requestPermissions(ProfileActivity.this, getString(R.string.qiscus_permission_request_title),
                     REQUEST_FILE_PERMISSION, FILE_PERMISSION);
         }
     }
 
     protected void requestCameraPermission() {
-        if (!QiscusPermissionsUtil.hasPermissions(this, CAMERA_PERMISSION)) {
-            QiscusPermissionsUtil.requestPermissions(this, getString(R.string.qiscus_permission_request_title),
+        if (!QiscusPermissionsUtil.hasPermissions(ProfileActivity.this, CAMERA_PERMISSION)) {
+            QiscusPermissionsUtil.requestPermissions(ProfileActivity.this, getString(R.string.qiscus_permission_request_title),
                     RC_CAMERA_PERMISSION, CAMERA_PERMISSION);
         }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        QiscusPermissionsUtil.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
+    }
+
+    @Override
+    public void onPermissionsGranted(int requestCode, List<String> perms) {
+        if (requestCode == REQUEST_FILE_PERMISSION) {
+            pickImage();
+        }
+    }
+
+    @Override
+    public void onPermissionsDenied(int requestCode, List<String> perms) {
+        QiscusPermissionsUtil.checkDeniedPermissionsNeverAskAgain(this, getString(R.string.qiscus_permission_message),
+                R.string.qiscus_grant, R.string.qiscus_denny, perms);
     }
 
     @Override
@@ -273,7 +295,7 @@ public class ProfileActivity extends AppCompatActivity implements ProfilePresent
         }
 
         Subscription subscription = QiscusApi.getInstance()
-                .uploadFile(compressedFile, percentage ->
+                .upload(compressedFile, percentage ->
                 {
                     //show percentage
                 })

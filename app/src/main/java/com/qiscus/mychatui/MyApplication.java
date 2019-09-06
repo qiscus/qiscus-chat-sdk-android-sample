@@ -31,7 +31,7 @@ public class MyApplication extends MultiDexApplication {
         instance = this;
         component = new AppComponent(this);
         Nirmana.init(this);
-        QiscusCore.init(this, BuildConfig.QISCUS_SDK_APP_ID);
+        QiscusCore.initWithAppId(this, BuildConfig.QISCUS_SDK_APP_ID);
 
         QiscusCore.getChatConfig()
                 .setEnableLog(true)

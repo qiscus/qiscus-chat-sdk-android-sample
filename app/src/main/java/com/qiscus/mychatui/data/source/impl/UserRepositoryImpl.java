@@ -69,7 +69,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public void getUsers(long page, int limit, String query, Action<List<User>> onSuccess, Action<Throwable> onError) {
-        QiscusApi.getInstance().getUsers(page, limit, query)
+        QiscusApi.getInstance().getUsers(query, page, limit)
                 .flatMap(Observable::from)
                 .filter(user -> !user.equals(getCurrentUser()))
                 .filter(user -> !user.getUsername().equals(""))

@@ -611,7 +611,7 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
         QiscusComment comment = commentsAdapter.getLatestSentComment();
         if (comment != null) {
             QiscusPusherApi.getInstance()
-                    .setUserRead(chatRoom.getId(), comment.getId());
+                    .markAsRead(chatRoom.getId(), comment.getId());
         }
     }
 
