@@ -130,7 +130,7 @@
             android:textSize="18sp" />
 
         <Button
-            android:id="@+id/login"
+            android:id="@+id/bt_start_chat"
             android:layout_width="200dp"
             android:layout_height="50dp"
             android:layout_marginTop="50dp"
