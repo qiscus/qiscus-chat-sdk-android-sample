@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.appcompat.widget.Toolbar;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -32,6 +33,7 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
     private LinearLayout linEmptyChatRooms;
     private ChatRoomAdapter chatRoomAdapter;
     private ImageView createChat, avatarProfile;
+    private Button btStartChat;
     private HomePresenter homePresenter;
 
     @Override
@@ -44,6 +46,7 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
         linEmptyChatRooms = findViewById(R.id.linEmptyChatRooms);
         createChat = findViewById(R.id.create_chat);
         avatarProfile = findViewById(R.id.avatar_profile);
+        btStartChat = findViewById(R.id.bt_start_chat);
 
         recyclerView = findViewById(R.id.recyclerview);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -54,6 +57,13 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
         createChat.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                startActivity(new Intent(HomeActivity.this, ContactActivity.class));
+            }
+        });
+
+        btStartChat.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
                 startActivity(new Intent(HomeActivity.this, ContactActivity.class));
             }
         });
