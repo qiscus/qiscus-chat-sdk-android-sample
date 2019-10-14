@@ -232,7 +232,7 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
                             .setColorPrimary(ContextCompat.getColor(getActivity(), R.color.colorPrimary))
                             .setColorPrimaryDark(ContextCompat.getColor(getActivity(), R.color.colorPrimaryDark))
                             .setColorAccent(ContextCompat.getColor(getActivity(), R.color.colorAccent))
-                            .pickDoc(getActivity());
+                            .pickDoc(ChatRoomFragment.this);
                     hideAttachmentPanel();
                 } else {
                     requestAddFilePermission();
