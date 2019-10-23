@@ -44,7 +44,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'id.zelory:compressor:2.1.0'
     implementation 'androidx.multidex:multidex:2.0.0'
-    api 'com.qiscus.sdk:chat-core:1.2.14'
+    implementation 'com.qiscus.sdk:chat-core:1.3.0'
 
     /**
      * Image utils
@@ -59,8 +59,8 @@ dependencies {
     /**
      * Firebase
      */
-    implementation 'com.google.firebase:firebase-core:16.0.1'
-    implementation 'com.google.firebase:firebase-messaging:17.3.4'
+    implementation 'com.google.firebase:firebase-core:17.2.0'
+    implementation 'com.google.firebase:firebase-messaging:20.0.0'
 
     implementation 'com.squareup.okhttp3:okhttp:3.12.0'
     implementation 'com.squareup.retrofit2:retrofit:2.5.0'
