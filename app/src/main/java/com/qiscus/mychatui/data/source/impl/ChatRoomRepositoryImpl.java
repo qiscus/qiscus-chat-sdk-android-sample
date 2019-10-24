@@ -52,7 +52,7 @@ public class ChatRoomRepositoryImpl implements ChatRoomRepository {
         }
 
         QiscusApi.getInstance()
-                .getChatRoom(user.getId(), null, null)
+                .getChatRoom(user.getId(), null)
                 .doOnNext(chatRoom -> QiscusCore.getDataStore().addOrUpdate(chatRoom))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())

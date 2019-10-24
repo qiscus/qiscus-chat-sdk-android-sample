@@ -37,8 +37,7 @@
         <activity android:name=".ui.ChatRoomActivity" />
         <activity android:name=".ui.QiscusSendPhotoConfirmationActivity" />
         <activity android:name=".ui.GroupChatRoomActivity" />
-        <activity
-            android:name=".ui.groupchatcreation.GroupChatCreationActivity"/>
+        <activity android:name=".ui.groupchatcreation.GroupChatCreationActivity" />
         <activity android:name=".ui.addmember.AddGroupMemberActivity" />
 
         <receiver
@@ -49,12 +48,9 @@
             </intent-filter>
         </receiver>
 
-        <service android:name=".service.AppFirebaseInstanceIdService">
-            <intent-filter>
-                <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
-            </intent-filter>
-        </service>
-        <service android:name=".service.AppFirebaseMessagingService">
+        <service
+            android:name=".service.AppFirebaseMessagingService"
+            android:exported="true">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>

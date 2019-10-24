@@ -1,12 +1,12 @@
 package com.qiscus.mychatui.ui.adapter;
 
 import android.content.Context;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.request.RequestOptions;
 import com.qiscus.mychatui.R;
@@ -14,6 +14,8 @@ import com.qiscus.mychatui.data.model.User;
 import com.qiscus.nirmana.Nirmana;
 
 import java.util.List;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 /**
  * Created on : January 31, 2018
@@ -68,7 +70,7 @@ public class ContactAdapter extends SortedRecyclerViewAdapter<User, ContactAdapt
     }
 
     static class VH extends RecyclerView.ViewHolder implements View.OnClickListener {
-        private ImageView avatar;
+        private CircleImageView avatar;
         private TextView name;
         private OnItemClickListener onItemClickListener;
 
