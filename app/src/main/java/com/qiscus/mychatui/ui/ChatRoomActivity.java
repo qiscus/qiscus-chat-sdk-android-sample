@@ -3,12 +3,13 @@ package com.qiscus.mychatui.ui;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.request.RequestOptions;
 import com.qiscus.mychatui.R;
@@ -109,13 +110,13 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatRoomFragm
 
     private void listenUser() {
         if (!chatRoom.isGroup() && opponentEmail != null) {
-            QiscusPusherApi.getInstance().listenUserStatus(opponentEmail);
+            QiscusPusherApi.getInstance().subscribeUserOnlinePresence(opponentEmail);
         }
     }
 
     private void unlistenUser() {
         if (!chatRoom.isGroup() && opponentEmail != null) {
-            QiscusPusherApi.getInstance().unListenUserStatus(opponentEmail);
+            QiscusPusherApi.getInstance().unsubscribeUserOnlinePresence(opponentEmail);
         }
     }
 

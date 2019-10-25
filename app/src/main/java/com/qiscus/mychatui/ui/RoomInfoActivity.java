@@ -5,12 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
-import android.provider.MediaStore;
-import androidx.core.content.FileProvider;
-import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import android.provider.MediaStore;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,6 +15,11 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.request.RequestOptions;
 import com.qiscus.mychatui.R;
@@ -44,23 +45,12 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
 public class RoomInfoActivity extends AppCompatActivity implements OnItemClickListener, QiscusApi.MetaRoomMembersListener {
-    private static final String CHAT_ROOM_DATA = "chat_room_data";
-    private QiscusChatRoom chatRoom;
-    private static final int RC_ADD_PARTICIPANTS = 133;
-
-    private TextView tvRoomName;
-    private ImageView ivEditRoomName, ivEditAvatarRoom, ivAvatar, bt_back;
-    private RecyclerView recyclerView;
-    private LinearLayout linUI;
-    private LinearLayout llAddParticipant;
-    private QiscusProgressView progress;
-    private ParticipantsRoomInfoAdapter participantAdapter;
-
-    private PopupWindow mPopupWindow;
-    private static final int REQUEST_PICK_IMAGE = 1;
-    private static final int REQUEST_FILE_PERMISSION = 2;
     protected static final int TAKE_PICTURE_REQUEST = 3;
     protected static final int RC_CAMERA_PERMISSION = 128;
+    private static final String CHAT_ROOM_DATA = "chat_room_data";
+    private static final int RC_ADD_PARTICIPANTS = 133;
+    private static final int REQUEST_PICK_IMAGE = 1;
+    private static final int REQUEST_FILE_PERMISSION = 2;
     private static final String[] FILE_PERMISSION = {
             "android.permission.WRITE_EXTERNAL_STORAGE",
             "android.permission.READ_EXTERNAL_STORAGE"
@@ -70,7 +60,15 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
             "android.permission.WRITE_EXTERNAL_STORAGE",
             "android.permission.READ_EXTERNAL_STORAGE",
     };
-
+    private QiscusChatRoom chatRoom;
+    private TextView tvRoomName;
+    private ImageView ivEditRoomName, ivEditAvatarRoom, ivAvatar, bt_back;
+    private RecyclerView recyclerView;
+    private LinearLayout linUI;
+    private LinearLayout llAddParticipant;
+    private QiscusProgressView progress;
+    private ParticipantsRoomInfoAdapter participantAdapter;
+    private PopupWindow mPopupWindow;
 
     public static Intent generateIntent(Context context, QiscusChatRoom chatRoom) {
         Intent intent = new Intent(context, RoomInfoActivity.class);
@@ -231,7 +229,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
                 emailParticipant
         };
 
-        QiscusApi.getInstance().removeRoomMember(chatRoom.getId(), Arrays.asList(arrEmail))
+        QiscusApi.getInstance().removeParticipants(chatRoom.getId(), Arrays.asList(arrEmail))
                 .doOnNext(chatRoom -> QiscusCore.getDataStore().addOrUpdate(chatRoom))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -272,7 +270,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
                 .load(chatRoom.getAvatarUrl())
                 .into(ivAvatar);
 
-        QiscusApi.getInstance().getRoomMembers(chatRoom.getUniqueId(),this)
+        QiscusApi.getInstance().getParticipants(chatRoom.getUniqueId(), 0, null, this)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(participants -> {
@@ -356,7 +354,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
         }
 
         QiscusApi.getInstance()
-                .uploadFile(compressedFile, percentage ->
+                .upload(compressedFile, percentage ->
                 {
                     //show percentage
                     int i = (int) percentage;

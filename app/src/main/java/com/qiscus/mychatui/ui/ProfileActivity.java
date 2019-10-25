@@ -6,8 +6,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import androidx.core.content.FileProvider;
-import androidx.appcompat.app.AppCompatActivity;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +14,9 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 
 import com.bumptech.glide.request.RequestOptions;
 import com.qiscus.mychatui.MyApplication;
@@ -39,18 +40,10 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
 public class ProfileActivity extends AppCompatActivity implements ProfilePresenter.View {
-    private LinearLayout logout, llBottom;
-    private ImageView ivAvatar, ivEditName, btBack;
-    private TextView tvName, tvUniqueID;
-
-    private PopupWindow mPopupWindow;
-    private ProfilePresenter profilePresenter;
-
-    private static final int REQUEST_PICK_IMAGE = 1;
-    private static final int REQUEST_FILE_PERMISSION = 2;
     protected static final int TAKE_PICTURE_REQUEST = 3;
     protected static final int RC_CAMERA_PERMISSION = 128;
-
+    private static final int REQUEST_PICK_IMAGE = 1;
+    private static final int REQUEST_FILE_PERMISSION = 2;
     private static final String[] FILE_PERMISSION = {
             "android.permission.WRITE_EXTERNAL_STORAGE",
             "android.permission.READ_EXTERNAL_STORAGE"
@@ -60,7 +53,11 @@ public class ProfileActivity extends AppCompatActivity implements ProfilePresent
             "android.permission.WRITE_EXTERNAL_STORAGE",
             "android.permission.READ_EXTERNAL_STORAGE",
     };
-
+    private LinearLayout logout, llBottom;
+    private ImageView ivAvatar, ivEditName, btBack;
+    private TextView tvName, tvUniqueID;
+    private PopupWindow mPopupWindow;
+    private ProfilePresenter profilePresenter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -273,7 +270,7 @@ public class ProfileActivity extends AppCompatActivity implements ProfilePresent
         }
 
         Subscription subscription = QiscusApi.getInstance()
-                .uploadFile(compressedFile, percentage ->
+                .upload(compressedFile, percentage ->
                 {
                     //show percentage
                 })

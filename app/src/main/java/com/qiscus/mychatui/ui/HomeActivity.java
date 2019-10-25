@@ -2,15 +2,16 @@ package com.qiscus.mychatui.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.appcompat.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.request.RequestOptions;
 import com.qiscus.mychatui.MyApplication;
@@ -89,7 +90,23 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
         homePresenter = new HomePresenter(this,
                 MyApplication.getInstance().getComponent().getChatRoomRepository(),
                 MyApplication.getInstance().getComponent().getUserRepository());
+
+
+//        createRoom();
     }
+
+//    private void createRoom() {
+//        QiscusApi.getInstance().getChatRoom("nona@mail.com", null)
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribe(qiscusChatRoom -> {
+//                    QiscusComment qiscusComment = QiscusComment.generateMessage(qiscusChatRoom.getId(),"First Message");
+//                    QiscusApi.getInstance().sendMessage(qiscusComment)
+//                            .subscribeOn(Schedulers.io())
+//                            .observeOn(AndroidSchedulers.mainThread())
+//                            .subscribe();
+//                });
+//    }
 
     @Override
     protected void onResume() {

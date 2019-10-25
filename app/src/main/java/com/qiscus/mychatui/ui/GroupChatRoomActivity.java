@@ -3,13 +3,14 @@ package com.qiscus.mychatui.ui;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.request.RequestOptions;
 import com.qiscus.mychatui.R;
@@ -88,7 +89,7 @@ public class GroupChatRoomActivity extends AppCompatActivity implements ChatRoom
     }
 
     private void setParticipants() {
-        QiscusApi.getInstance().getRoomMembers(chatRoom.getUniqueId(),this)
+        QiscusApi.getInstance().getParticipants(chatRoom.getUniqueId(), 0, null, this)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(participants -> {

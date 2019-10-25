@@ -33,7 +33,7 @@ public class ChatRoomRepositoryImpl implements ChatRoomRepository {
                 .subscribe(onSuccess::call, onError::call);
 
         QiscusApi.getInstance()
-                .getChatRooms(1, 100, true)
+                .getAllChatRooms(true, false, true, 1, 100)
                 .flatMap(Observable::from)
                 .doOnNext(qiscusChatRoom -> QiscusCore.getDataStore().addOrUpdate(qiscusChatRoom))
                 .filter(chatRoom -> chatRoom.getLastComment().getId() != 0)
@@ -52,7 +52,7 @@ public class ChatRoomRepositoryImpl implements ChatRoomRepository {
         }
 
         QiscusApi.getInstance()
-                .getChatRoom(user.getId(), null)
+                .chatUser(user.getId(), null)
                 .doOnNext(chatRoom -> QiscusCore.getDataStore().addOrUpdate(chatRoom))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -67,7 +67,7 @@ public class ChatRoomRepositoryImpl implements ChatRoomRepository {
         }
 
         QiscusApi.getInstance()
-                .createGroupChatRoom(name, ids, AvatarUtil.generateAvatar(name), null)
+                .createGroupChat(name, ids, AvatarUtil.generateAvatar(name), null)
                 .doOnNext(chatRoom -> QiscusCore.getDataStore().addOrUpdate(chatRoom))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -80,7 +80,7 @@ public class ChatRoomRepositoryImpl implements ChatRoomRepository {
         for (User member : members) {
             ids.add(member.getId());
         }
-        QiscusApi.getInstance().addRoomMember(roomId, ids)
+        QiscusApi.getInstance().addParticipants(roomId, ids)
                 .doOnNext(chatRoom -> QiscusCore.getDataStore().addOrUpdate(chatRoom))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -93,7 +93,7 @@ public class ChatRoomRepositoryImpl implements ChatRoomRepository {
         for (User member : members) {
             ids.add(member.getId());
         }
-        QiscusApi.getInstance().addRoomMember(roomId, ids)
+        QiscusApi.getInstance().addParticipants(roomId, ids)
                 .doOnNext(chatRoom -> QiscusCore.getDataStore().addOrUpdate(chatRoom))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
