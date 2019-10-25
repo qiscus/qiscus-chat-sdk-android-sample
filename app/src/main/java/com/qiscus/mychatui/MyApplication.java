@@ -25,24 +25,25 @@ public class MyApplication extends MultiDexApplication {
         return instance;
     }
 
+    private static void initEmoji() {
+        EmojiManager.install(new EmojiOneProvider());
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
         instance = this;
         component = new AppComponent(this);
+
         Nirmana.init(this);
-        QiscusCore.init(this, BuildConfig.QISCUS_SDK_APP_ID);
+        QiscusCore.initWithAppId(this, BuildConfig.QISCUS_SDK_APP_ID);
 
         QiscusCore.getChatConfig()
-                .setEnableLog(true)
+                .enableDebugMode(true)
                 .setNotificationListener(PushNotificationUtil::showNotification)
                 .setEnableFcmPushNotification(true);
         initEmoji();
         Jupuk.init(this);
-    }
-
-    private static void initEmoji() {
-        EmojiManager.install(new EmojiOneProvider());
     }
 
     public AppComponent getComponent() {

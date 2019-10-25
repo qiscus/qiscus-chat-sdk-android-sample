@@ -2,17 +2,21 @@ package com.qiscus.mychatui.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.appcompat.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.bumptech.glide.request.RequestOptions;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.security.ProviderInstaller;
 import com.qiscus.mychatui.MyApplication;
 import com.qiscus.mychatui.R;
 import com.qiscus.mychatui.presenter.HomePresenter;
@@ -76,12 +80,9 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
                 .load(QiscusCore.getQiscusAccount().getAvatar())
                 .into(avatarProfile);
 
-        avatarProfile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(HomeActivity.this, ProfileActivity.class);
-                startActivity(intent);
-            }
+        avatarProfile.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, ProfileActivity.class);
+            startActivity(intent);
         });
 
         recyclerView.setAdapter(chatRoomAdapter);
@@ -89,6 +90,15 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
         homePresenter = new HomePresenter(this,
                 MyApplication.getInstance().getComponent().getChatRoomRepository(),
                 MyApplication.getInstance().getComponent().getUserRepository());
+
+//        Used for fixing realtime issue in API below Lollipop(5.0)
+        try {
+            ProviderInstaller.installIfNeeded(getApplicationContext());
+        } catch (GooglePlayServicesRepairableException e) {
+            e.printStackTrace();
+        } catch (GooglePlayServicesNotAvailableException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

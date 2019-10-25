@@ -9,13 +9,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -28,6 +21,14 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.qiscus.jupuk.JupukBuilder;
 import com.qiscus.jupuk.JupukConst;
@@ -60,14 +61,16 @@ import java.util.Map;
  */
 public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.View,
         QiscusPermissionsUtil.PermissionCallbacks, QiscusChatScrollListener.Listener {
-    private static final String CHAT_ROOM_KEY = "extra_chat_room";
-    private static final int REQUEST_PICK_IMAGE = 1;
-    private static final int REQUEST_FILE_PERMISSION = 2;
     protected static final int RC_PERMISSIONS = 127;
     protected static final int RC_CAMERA_PERMISSION = 128;
     protected static final int RC_AUDIO_PERMISSION = 129;
     protected static final int RC_FILE_PERMISSION = 130;
-
+    protected static final int TAKE_PICTURE_REQUEST = 3;
+    protected static final int SEND_PICTURE_CONFIRMATION_REQUEST = 4;
+    protected static final int SHOW_MEDIA_DETAIL = 5;
+    private static final String CHAT_ROOM_KEY = "extra_chat_room";
+    private static final int REQUEST_PICK_IMAGE = 1;
+    private static final int REQUEST_FILE_PERMISSION = 2;
     private static final String[] FILE_PERMISSION = {
             "android.permission.WRITE_EXTERNAL_STORAGE",
             "android.permission.READ_EXTERNAL_STORAGE"
@@ -82,10 +85,6 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
             "android.permission.WRITE_EXTERNAL_STORAGE",
             "android.permission.READ_EXTERNAL_STORAGE",
     };
-    protected static final int TAKE_PICTURE_REQUEST = 3;
-    protected static final int SEND_PICTURE_CONFIRMATION_REQUEST = 4;
-    protected static final int SHOW_MEDIA_DETAIL = 5;
-
     private EditText messageField;
     private ImageView sendButton;
     private ImageView attachImageButton;
@@ -170,9 +169,9 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
         });
 
         attachImageButton.setOnClickListener(v -> {
-            if (linAttachment.isShown()){
+            if (linAttachment.isShown()) {
                 hideAttachmentPanel();
-            }else{
+            } else {
                 showAttachmentPanel();
             }
 
@@ -304,7 +303,7 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
     }
 
     private void notifyServerTyping(boolean typing) {
-        QiscusPusherApi.getInstance().setUserTyping(chatRoom.getId(), typing);
+        QiscusPusherApi.getInstance().publishTyping(chatRoom.getId(), typing);
     }
 
     private void pickImage() {
@@ -611,7 +610,7 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
         QiscusComment comment = commentsAdapter.getLatestSentComment();
         if (comment != null) {
             QiscusPusherApi.getInstance()
-                    .setUserRead(chatRoom.getId(), comment.getId());
+                    .markAsRead(chatRoom.getId(), comment.getId());
         }
     }
 
