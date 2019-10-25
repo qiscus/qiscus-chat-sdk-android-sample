@@ -14,6 +14,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.request.RequestOptions;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.security.ProviderInstaller;
 import com.qiscus.mychatui.MyApplication;
 import com.qiscus.mychatui.R;
 import com.qiscus.mychatui.presenter.HomePresenter;
@@ -77,12 +80,9 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
                 .load(QiscusCore.getQiscusAccount().getAvatar())
                 .into(avatarProfile);
 
-        avatarProfile.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(HomeActivity.this, ProfileActivity.class);
-                startActivity(intent);
-            }
+        avatarProfile.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, ProfileActivity.class);
+            startActivity(intent);
         });
 
         recyclerView.setAdapter(chatRoomAdapter);
@@ -91,22 +91,15 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
                 MyApplication.getInstance().getComponent().getChatRoomRepository(),
                 MyApplication.getInstance().getComponent().getUserRepository());
 
-
-//        createRoom();
+//        Used for fixing realtime issue in API below Lollipop(5.0)
+        try {
+            ProviderInstaller.installIfNeeded(getApplicationContext());
+        } catch (GooglePlayServicesRepairableException e) {
+            e.printStackTrace();
+        } catch (GooglePlayServicesNotAvailableException e) {
+            e.printStackTrace();
+        }
     }
-
-//    private void createRoom() {
-//        QiscusApi.getInstance().getChatRoom("nona@mail.com", null)
-//                .subscribeOn(Schedulers.io())
-//                .observeOn(AndroidSchedulers.mainThread())
-//                .subscribe(qiscusChatRoom -> {
-//                    QiscusComment qiscusComment = QiscusComment.generateMessage(qiscusChatRoom.getId(),"First Message");
-//                    QiscusApi.getInstance().sendMessage(qiscusComment)
-//                            .subscribeOn(Schedulers.io())
-//                            .observeOn(AndroidSchedulers.mainThread())
-//                            .subscribe();
-//                });
-//    }
 
     @Override
     protected void onResume() {
