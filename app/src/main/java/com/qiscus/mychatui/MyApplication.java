@@ -35,12 +35,6 @@ public class MyApplication extends MultiDexApplication {
         instance = this;
         component = new AppComponent(this);
 
-//        QiscusCore.initWithCustomServer(this, BuildConfig.QISCUS_SDK_APP_ID,
-//                "https://qiscus-lb.stage.halodoc.com",
-//                "qiscus-mqtt.stage.halodoc.com",
-//                null);
-//        QiscusCore.getChatConfig()
-//                .enableDebugMode(true);
         Nirmana.init(this);
         QiscusCore.initWithAppId(this, BuildConfig.QISCUS_SDK_APP_ID);
 
