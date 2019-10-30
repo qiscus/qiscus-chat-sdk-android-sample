@@ -270,7 +270,7 @@ public class ProfileActivity extends AppCompatActivity implements ProfilePresent
         }
 
         Subscription subscription = QiscusApi.getInstance()
-                .upload(compressedFile, percentage ->
+                .uploadFile(compressedFile, percentage ->
                 {
                     //show percentage
                 })

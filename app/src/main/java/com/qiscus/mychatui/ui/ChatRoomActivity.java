@@ -110,13 +110,13 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatRoomFragm
 
     private void listenUser() {
         if (!chatRoom.isGroup() && opponentEmail != null) {
-            QiscusPusherApi.getInstance().subscribeUserOnlinePresence(opponentEmail);
+            QiscusPusherApi.getInstance().listenUserStatus(opponentEmail);
         }
     }
 
     private void unlistenUser() {
         if (!chatRoom.isGroup() && opponentEmail != null) {
-            QiscusPusherApi.getInstance().unsubscribeUserOnlinePresence(opponentEmail);
+            QiscusPusherApi.getInstance().unListenUserStatus(opponentEmail);
         }
     }
 

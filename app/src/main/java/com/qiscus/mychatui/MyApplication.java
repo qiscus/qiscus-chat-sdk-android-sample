@@ -36,10 +36,10 @@ public class MyApplication extends MultiDexApplication {
         component = new AppComponent(this);
 
         Nirmana.init(this);
-        QiscusCore.initWithAppId(this, BuildConfig.QISCUS_SDK_APP_ID);
+        QiscusCore.init(this, BuildConfig.QISCUS_SDK_APP_ID);
 
         QiscusCore.getChatConfig()
-                .enableDebugMode(true)
+                .setEnableLog(true)
                 .setNotificationListener(PushNotificationUtil::showNotification)
                 .setEnableFcmPushNotification(true);
         initEmoji();

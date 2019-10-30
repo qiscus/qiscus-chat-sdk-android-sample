@@ -303,7 +303,7 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
     }
 
     private void notifyServerTyping(boolean typing) {
-        QiscusPusherApi.getInstance().publishTyping(chatRoom.getId(), typing);
+        QiscusPusherApi.getInstance().setUserTyping(chatRoom.getId(), typing);
     }
 
     private void pickImage() {
@@ -610,7 +610,7 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
         QiscusComment comment = commentsAdapter.getLatestSentComment();
         if (comment != null) {
             QiscusPusherApi.getInstance()
-                    .markAsRead(chatRoom.getId(), comment.getId());
+                    .setUserRead(chatRoom.getId(), comment.getId());
         }
     }
 

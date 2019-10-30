@@ -229,7 +229,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
                 emailParticipant
         };
 
-        QiscusApi.getInstance().removeParticipants(chatRoom.getId(), Arrays.asList(arrEmail))
+        QiscusApi.getInstance().removeRoomMember(chatRoom.getId(), Arrays.asList(arrEmail))
                 .doOnNext(chatRoom -> QiscusCore.getDataStore().addOrUpdate(chatRoom))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -270,7 +270,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
                 .load(chatRoom.getAvatarUrl())
                 .into(ivAvatar);
 
-        QiscusApi.getInstance().getParticipants(chatRoom.getUniqueId(), 0, null, this)
+        QiscusApi.getInstance().getRoomMembers(chatRoom.getUniqueId(), 0, null,null, this)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(participants -> {
@@ -354,7 +354,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
         }
 
         QiscusApi.getInstance()
-                .upload(compressedFile, percentage ->
+                .uploadFile(compressedFile, percentage ->
                 {
                     //show percentage
                     int i = (int) percentage;
