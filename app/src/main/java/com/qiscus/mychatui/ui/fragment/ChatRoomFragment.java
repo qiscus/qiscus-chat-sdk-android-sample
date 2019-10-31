@@ -350,6 +350,7 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
             emptyChat.setVisibility(View.GONE);
             recyclerView.setVisibility(View.VISIBLE);
         }
+        notifyLatestRead();
     }
 
     @Override
