@@ -8,7 +8,8 @@ import android.widget.ImageView;
 
 import com.qiscus.mychatui.R;
 import com.qiscus.sdk.chat.core.QiscusCore;
-import com.qiscus.sdk.chat.core.data.model.QiscusAccount;
+import com.qiscus.sdk.chat.core.data.model.QAccount;
+import com.qiscus.sdk.chat.core.data.model.QUser;
 
 public class EditNameActivity extends AppCompatActivity {
     EditText etName;
@@ -22,7 +23,7 @@ public class EditNameActivity extends AppCompatActivity {
         btBack = findViewById(R.id.bt_back);
         btSave = findViewById(R.id.bt_save);
 
-        etName.setText(QiscusCore.getQiscusAccount().getUsername());
+        etName.setText(QiscusCore.getQiscusAccount().getName());
 
         btSave.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -30,7 +31,7 @@ public class EditNameActivity extends AppCompatActivity {
                 if (!etName.getText().toString().isEmpty()){
                     QiscusCore.updateUser(etName.getText().toString(), null, null, new QiscusCore.SetUserListener() {
                         @Override
-                        public void onSuccess(QiscusAccount qiscusAccount) {
+                        public void onSuccess(QAccount qiscusAccount) {
                             //do anything after it successfully updated
                             finish();
                         }

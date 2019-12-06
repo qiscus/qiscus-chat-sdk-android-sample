@@ -184,7 +184,6 @@
                 android:layout_width="46dp"
                 android:layout_height="46dp"
                 android:layout_gravity="bottom"
-                android:background="@drawable/bt_qiscus_selector_grey"
                 android:padding="8dp"
                 android:src="@drawable/ic_attach" />
 
@@ -210,7 +209,6 @@
                 android:layout_width="46dp"
                 android:layout_height="46dp"
                 android:layout_gravity="bottom"
-                android:background="@drawable/bt_qiscus_selector_grey"
                 android:padding="8dp"
                 android:src="@drawable/ic_send_active" />
 

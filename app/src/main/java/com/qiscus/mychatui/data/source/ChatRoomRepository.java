@@ -2,7 +2,7 @@ package com.qiscus.mychatui.data.source;
 
 import com.qiscus.mychatui.data.model.User;
 import com.qiscus.mychatui.util.Action;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
 
 import java.util.List;
 
@@ -13,11 +13,11 @@ import java.util.List;
  * GitHub     : https://github.com/zetbaitsu
  */
 public interface ChatRoomRepository {
-    void getChatRooms(Action<List<QiscusChatRoom>> onSuccess, Action<Throwable> onError);
+    void getChatRooms(Action<List<QChatRoom>> onSuccess, Action<Throwable> onError);
 
-    void createChatRoom(User user, Action<QiscusChatRoom> onSuccess, Action<Throwable> onError);
+    void createChatRoom(User user, Action<QChatRoom> onSuccess, Action<Throwable> onError);
 
-    void createGroupChatRoom(String name, List<User> members, Action<QiscusChatRoom> onSuccess, Action<Throwable> onError);
+    void createGroupChatRoom(String name, List<User> members, Action<QChatRoom> onSuccess, Action<Throwable> onError);
 
     void addParticipant(long roomId, List<User> members, Action<Void> onSuccess, Action<Throwable> onError);
 

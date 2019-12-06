@@ -5,7 +5,7 @@ import com.qiscus.mychatui.data.model.User;
 import com.qiscus.mychatui.data.source.ChatRoomRepository;
 import com.qiscus.mychatui.data.source.UserRepository;
 import com.qiscus.mychatui.ui.groupchatcreation.SelectableUser;
-import com.qiscus.sdk.chat.core.data.model.QiscusRoomMember;
+import com.qiscus.sdk.chat.core.data.model.QParticipant;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,13 +24,13 @@ public class AddGroupMemberPresenter {
     private View view;
     private UserRepository userRepository;
     private ChatRoomRepository chatRoomRepository;
-    private List<QiscusRoomMember> members;
+    private List<QParticipant> members;
     private List<SelectableUser> contacts;
 
     public AddGroupMemberPresenter(View view,
                                    UserRepository userRepository,
                                    ChatRoomRepository chatRoomRepository,
-                                   List<QiscusRoomMember> members) {
+                                   List<QParticipant> members) {
         this.view = view;
         this.userRepository = userRepository;
         this.chatRoomRepository = chatRoomRepository;
@@ -77,8 +77,8 @@ public class AddGroupMemberPresenter {
         userRepository.getUsers(page, limit, query, users -> {
                     Observable.from(users)
                             .filter(user -> {
-                                QiscusRoomMember member = new QiscusRoomMember();
-                                member.setEmail(user.getId());
+                                QParticipant member = new QParticipant();
+                                member.setId(user.getId());
                                 return !members.contains(member);
                             })
                             .toList()

@@ -27,7 +27,8 @@ import com.qiscus.mychatui.util.QiscusPermissionsUtil;
 import com.qiscus.nirmana.Nirmana;
 import com.qiscus.sdk.chat.core.QiscusCore;
 import com.qiscus.sdk.chat.core.data.local.QiscusCacheManager;
-import com.qiscus.sdk.chat.core.data.model.QiscusAccount;
+import com.qiscus.sdk.chat.core.data.model.QAccount;
+import com.qiscus.sdk.chat.core.data.model.QUser;
 import com.qiscus.sdk.chat.core.data.remote.QiscusApi;
 import com.qiscus.sdk.chat.core.util.QiscusFileUtil;
 
@@ -218,15 +219,15 @@ public class ProfileActivity extends AppCompatActivity implements ProfilePresent
 
     private void loadProfile() {
         //load profile from local db
-        tvUniqueID.setText(QiscusCore.getQiscusAccount().getEmail());
-        tvName.setText(QiscusCore.getQiscusAccount().getUsername());
+        tvUniqueID.setText(QiscusCore.getQiscusAccount().getId());
+        tvName.setText(QiscusCore.getQiscusAccount().getName());
 
         Nirmana.getInstance().get()
                 .setDefaultRequestOptions(new RequestOptions()
                         .placeholder(R.drawable.profile)
                         .error(R.drawable.profile)
                         .dontAnimate())
-                .load(QiscusCore.getQiscusAccount().getAvatar())
+                .load(QiscusCore.getQiscusAccount().getAvatarUrl())
                 .into(ivAvatar);
     }
 
@@ -282,7 +283,7 @@ public class ProfileActivity extends AppCompatActivity implements ProfilePresent
                 .subscribe(uri -> {
                     QiscusCore.updateUser(null, uri.toString(), null, new QiscusCore.SetUserListener() {
                         @Override
-                        public void onSuccess(QiscusAccount qiscusAccount) {
+                        public void onSuccess(QAccount qiscusAccount) {
                             //do anything after it successfully updated
                             loadProfile();
                         }

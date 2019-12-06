@@ -32,7 +32,7 @@ import com.qiscus.mychatui.util.QiscusPermissionsUtil;
 import com.qiscus.nirmana.Nirmana;
 import com.qiscus.sdk.chat.core.QiscusCore;
 import com.qiscus.sdk.chat.core.data.local.QiscusCacheManager;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
 import com.qiscus.sdk.chat.core.data.remote.QiscusApi;
 import com.qiscus.sdk.chat.core.util.QiscusFileUtil;
 
@@ -60,7 +60,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
             "android.permission.WRITE_EXTERNAL_STORAGE",
             "android.permission.READ_EXTERNAL_STORAGE",
     };
-    private QiscusChatRoom chatRoom;
+    private QChatRoom chatRoom;
     private TextView tvRoomName;
     private ImageView ivEditRoomName, ivEditAvatarRoom, ivAvatar, bt_back;
     private RecyclerView recyclerView;
@@ -70,7 +70,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
     private ParticipantsRoomInfoAdapter participantAdapter;
     private PopupWindow mPopupWindow;
 
-    public static Intent generateIntent(Context context, QiscusChatRoom chatRoom) {
+    public static Intent generateIntent(Context context, QChatRoom chatRoom) {
         Intent intent = new Intent(context, RoomInfoActivity.class);
         intent.putExtra(CHAT_ROOM_DATA, chatRoom);
         return intent;
@@ -224,7 +224,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
 
     @Override
     public void onItemClick(int position) {
-        String emailParticipant = participantAdapter.getData().get(position).getEmail();
+        String emailParticipant = participantAdapter.getData().get(position).getId();
         String[] arrEmail = {
                 emailParticipant
         };

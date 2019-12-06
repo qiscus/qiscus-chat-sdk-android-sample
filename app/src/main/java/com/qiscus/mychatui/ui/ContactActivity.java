@@ -7,6 +7,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.appcompat.widget.SearchView;
+
+import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.Toast;
@@ -18,7 +20,7 @@ import com.qiscus.mychatui.presenter.ContactPresenter;
 import com.qiscus.mychatui.ui.adapter.ContactAdapter;
 import com.qiscus.mychatui.ui.adapter.OnItemClickListener;
 import com.qiscus.mychatui.ui.groupchatcreation.GroupChatCreationActivity;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
 
 import java.util.List;
 
@@ -36,7 +38,8 @@ public class ContactActivity extends AppCompatActivity implements ContactPresent
     private LinearLayout llCreateGroupChat;
 
     private ContactPresenter contactPresenter;
-
+    private Integer page = 1;
+    private Boolean isLoading = false;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,7 +59,28 @@ public class ContactActivity extends AppCompatActivity implements ContactPresent
         contactPresenter = new ContactPresenter(this,
                 MyApplication.getInstance().getComponent().getUserRepository(),
                 MyApplication.getInstance().getComponent().getChatRoomRepository());
-        contactPresenter.loadContacts(1,100, "");
+        contactPresenter.loadContacts(page,100, "");
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                LinearLayoutManager layoutManager = LinearLayoutManager.class.cast(recyclerView.getLayoutManager());
+                int visibleItemCount = layoutManager.getChildCount();
+                int totalItemCount = layoutManager.getItemCount();
+                int pastVisibleItems = layoutManager.findFirstCompletelyVisibleItemPosition();
+
+                if(pastVisibleItems+visibleItemCount >= totalItemCount){
+                    // End of the list is here.
+                    if (isLoading == false){
+                        isLoading = true;
+                        page = page + 1;
+                        contactPresenter.loadContacts(page,100, "");
+                    }
+
+                }
+            }
+        });
 
         llCreateGroupChat.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -68,16 +92,18 @@ public class ContactActivity extends AppCompatActivity implements ContactPresent
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
+                page = 1;
                 query = query.toLowerCase();
-                contactPresenter.search(query);
+                contactPresenter.search(page, query);
                 searchView.clearFocus();
                 return true;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
+                page = 1;
                 newText = newText.toLowerCase();
-                contactPresenter.search(newText);
+                contactPresenter.search(page,newText);
                 return true;
             }
         });
@@ -86,12 +112,24 @@ public class ContactActivity extends AppCompatActivity implements ContactPresent
 
     @Override
     public void showContacts(List<User> contacts) {
+        isLoading = false;
+        if (contacts.isEmpty()){
+            return;
+        } else {
+            contactAdapter.addOrUpdate(contacts);
+        }
+
+    }
+
+    @Override
+    public void searchContacts(List<User> contacts) {
+        isLoading = false;
         contactAdapter.clear();
         contactAdapter.addOrUpdate(contacts);
     }
 
     @Override
-    public void showChatRoomPage(QiscusChatRoom chatRoom) {
+    public void showChatRoomPage(QChatRoom chatRoom) {
         startActivity(ChatRoomActivity.generateIntent(this, chatRoom));
     }
 

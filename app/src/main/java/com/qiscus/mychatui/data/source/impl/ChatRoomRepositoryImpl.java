@@ -5,7 +5,7 @@ import com.qiscus.mychatui.data.source.ChatRoomRepository;
 import com.qiscus.mychatui.util.Action;
 import com.qiscus.mychatui.util.AvatarUtil;
 import com.qiscus.sdk.chat.core.QiscusCore;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
 import com.qiscus.sdk.chat.core.data.remote.QiscusApi;
 
 import java.util.ArrayList;
@@ -24,9 +24,9 @@ import rx.schedulers.Schedulers;
 public class ChatRoomRepositoryImpl implements ChatRoomRepository {
 
     @Override
-    public void getChatRooms(Action<List<QiscusChatRoom>> onSuccess, Action<Throwable> onError) {
+    public void getChatRooms(Action<List<QChatRoom>> onSuccess, Action<Throwable> onError) {
         Observable.from(QiscusCore.getDataStore().getChatRooms(100))
-                .filter(chatRoom -> chatRoom.getLastComment() != null)
+                .filter(chatRoom -> chatRoom.getLastMessage() != null)
                 .toList()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -36,7 +36,7 @@ public class ChatRoomRepositoryImpl implements ChatRoomRepository {
                 .getAllChatRooms(true, false, true, 1, 100)
                 .flatMap(Observable::from)
                 .doOnNext(qiscusChatRoom -> QiscusCore.getDataStore().addOrUpdate(qiscusChatRoom))
-                .filter(chatRoom -> chatRoom.getLastComment().getId() != 0)
+                .filter(chatRoom -> chatRoom.getLastMessage().getId() != 0)
                 .toList()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -44,8 +44,8 @@ public class ChatRoomRepositoryImpl implements ChatRoomRepository {
     }
 
     @Override
-    public void createChatRoom(User user, Action<QiscusChatRoom> onSuccess, Action<Throwable> onError) {
-        QiscusChatRoom savedChatRoom = QiscusCore.getDataStore().getChatRoom(user.getId());
+    public void createChatRoom(User user, Action<QChatRoom> onSuccess, Action<Throwable> onError) {
+        QChatRoom savedChatRoom = QiscusCore.getDataStore().getChatRoom(user.getId());
         if (savedChatRoom != null) {
             onSuccess.call(savedChatRoom);
             return;
@@ -60,7 +60,7 @@ public class ChatRoomRepositoryImpl implements ChatRoomRepository {
     }
 
     @Override
-    public void createGroupChatRoom(String name, List<User> members, Action<QiscusChatRoom> onSuccess, Action<Throwable> onError) {
+    public void createGroupChatRoom(String name, List<User> members, Action<QChatRoom> onSuccess, Action<Throwable> onError) {
         List<String> ids = new ArrayList<>();
         for (User member : members) {
             ids.add(member.getId());

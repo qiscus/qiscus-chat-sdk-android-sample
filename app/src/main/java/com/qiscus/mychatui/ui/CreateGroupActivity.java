@@ -14,7 +14,7 @@ import com.qiscus.mychatui.MyApplication;
 import com.qiscus.mychatui.R;
 import com.qiscus.mychatui.data.model.User;
 import com.qiscus.mychatui.presenter.CreateGroupPresenter;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +66,7 @@ public class CreateGroupActivity extends AppCompatActivity implements CreateGrou
     }
 
     @Override
-    public void showGroupChatRoomPage(QiscusChatRoom chatRoom) {
+    public void showGroupChatRoomPage(QChatRoom chatRoom) {
         startActivity(GroupChatRoomActivity.generateIntent(this, chatRoom));
     }
 

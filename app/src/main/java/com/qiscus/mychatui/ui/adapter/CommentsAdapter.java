@@ -21,8 +21,8 @@ import com.qiscus.mychatui.util.DateUtil;
 import com.qiscus.mychatui.util.QiscusImageUtil;
 import com.qiscus.nirmana.Nirmana;
 import com.qiscus.sdk.chat.core.QiscusCore;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
-import com.qiscus.sdk.chat.core.data.model.QiscusComment;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
+import com.qiscus.sdk.chat.core.data.model.QMessage;
 import com.qiscus.sdk.chat.core.data.remote.QiscusApi;
 import com.qiscus.sdk.chat.core.util.QiscusAndroidUtil;
 import com.qiscus.sdk.chat.core.util.QiscusDateUtil;
@@ -41,7 +41,7 @@ import rx.schedulers.Schedulers;
  * Name       : Zetra
  * GitHub     : https://github.com/zetbaitsu
  */
-public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, CommentsAdapter.VH> {
+public class CommentsAdapter extends SortedRecyclerViewAdapter<QMessage, CommentsAdapter.VH> {
 
     private static final int TYPE_MY_TEXT = 1;
     private static final int TYPE_OPPONENT_TEXT = 2;
@@ -66,16 +66,16 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
     }
 
     @Override
-    protected Class<QiscusComment> getItemClass() {
-        return QiscusComment.class;
+    protected Class<QMessage> getItemClass() {
+        return QMessage.class;
     }
 
     @Override
-    protected int compare(QiscusComment item1, QiscusComment item2) {
+    protected int compare(QMessage item1, QMessage item2) {
         if (item2.equals(item1)) { //Same comments
             return 0;
         } else if (item2.getId() == -1 && item1.getId() == -1) { //Not completed comments
-            return item2.getTime().compareTo(item1.getTime());
+            return item2.getTimestamp().compareTo(item1.getTimestamp());
         } else if (item2.getId() != -1 && item1.getId() != -1) { //Completed comments
             return QiscusAndroidUtil.compare(item2.getId(), item1.getId());
         } else if (item2.getId() == -1) {
@@ -83,18 +83,18 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
         } else if (item1.getId() == -1) {
             return -1;
         }
-        return item2.getTime().compareTo(item1.getTime());
+        return item2.getTimestamp().compareTo(item1.getTimestamp());
     }
 
     @Override
     public int getItemViewType(int position) {
-        QiscusComment comment = getData().get(position);
+        QMessage comment = getData().get(position);
         switch (comment.getType()) {
             case TEXT:
                 return comment.isMyComment() ? TYPE_MY_TEXT : TYPE_OPPONENT_TEXT;
             case CUSTOM:
                 try {
-                    JSONObject obj = new JSONObject(comment.getExtraPayload());
+                    JSONObject obj = comment.getPayload();
                     String type = obj.getString("type");
                     if (type.contains("image")) {
                         return comment.isMyComment() ? TYPE_MY_IMAGE : TYPE_OPPONENT_IMAGE;
@@ -163,8 +163,8 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
         if (position == getData().size() - 1) {
             holder.setNeedToShowDate(true);
         } else {
-            holder.setNeedToShowDate(!QiscusDateUtil.isDateEqualIgnoreTime(getData().get(position).getTime(),
-                    getData().get(position + 1).getTime()));
+            holder.setNeedToShowDate(!QiscusDateUtil.isDateEqualIgnoreTime(getData().get(position).getTimestamp(),
+                    getData().get(position + 1).getTimestamp()));
         }
 
 
@@ -172,8 +172,8 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
 
     }
 
-    public void addOrUpdate(List<QiscusComment> comments) {
-        for (QiscusComment comment : comments) {
+    public void addOrUpdate(List<QMessage> comments) {
+        for (QMessage comment : comments) {
             int index = findPosition(comment);
             if (index == -1) {
                 getData().add(comment);
@@ -184,7 +184,7 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
         notifyDataSetChanged();
     }
 
-    public void addOrUpdate(QiscusComment comment) {
+    public void addOrUpdate(QMessage comment) {
         int index = findPosition(comment);
         if (index == -1) {
             getData().add(comment);
@@ -194,16 +194,16 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
         notifyDataSetChanged();
     }
 
-    public void remove(QiscusComment comment) {
+    public void remove(QMessage comment) {
         getData().remove(comment);
         notifyDataSetChanged();
     }
 
-    public QiscusComment getLatestSentComment() {
+    public QMessage getLatestSentComment() {
         int size = getData().size();
         for (int i = 0; i < size; i++) {
-            QiscusComment comment = getData().get(i);
-            if (comment.getState() >= QiscusComment.STATE_ON_QISCUS) {
+            QMessage comment = getData().get(i);
+            if (comment.getState() >= QMessage.STATE_ON_QISCUS) {
                 return comment;
             }
         }
@@ -226,17 +226,17 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
     private void updateCommentState() {
         int size = getData().size();
         for (int i = 0; i < size; i++) {
-            if (getData().get(i).getState() > QiscusComment.STATE_SENDING) {
+            if (getData().get(i).getState() > QMessage.STATE_SENDING) {
                 if (getData().get(i).getId() <= lastReadCommentId) {
-                    if (getData().get(i).getState() == QiscusComment.STATE_READ) {
+                    if (getData().get(i).getState() == QMessage.STATE_READ) {
                         break;
                     }
-                    getData().get(i).setState(QiscusComment.STATE_READ);
+                    getData().get(i).setState(QMessage.STATE_READ);
                 } else if (getData().get(i).getId() <= lastDeliveredCommentId) {
-                    if (getData().get(i).getState() == QiscusComment.STATE_DELIVERED) {
+                    if (getData().get(i).getState() == QMessage.STATE_DELIVERED) {
                         break;
                     }
-                    getData().get(i).setState(QiscusComment.STATE_DELIVERED);
+                    getData().get(i).setState(QMessage.STATE_DELIVERED);
                 }
             }
         }
@@ -269,7 +269,7 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
 
         }
 
-        void bind(QiscusComment comment) {
+        void bind(QMessage comment) {
             Nirmana.getInstance().get()
                     .setDefaultRequestOptions(new RequestOptions()
                             .placeholder(R.drawable.ic_qiscus_avatar)
@@ -278,11 +278,11 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
                     .load(comment.getSenderAvatar())
                     .into(avatar);
             if (sender != null) {
-                sender.setText(comment.getSender());
+                sender.setText(comment.getSender().getName());
             }
-            date.setText(DateUtil.getTimeStringFromDate(comment.getTime()));
+            date.setText(DateUtil.getTimeStringFromDate(comment.getTimestamp()));
             if (dateOfMessage != null) {
-                dateOfMessage.setText(DateUtil.toFullDate(comment.getTime()));
+                dateOfMessage.setText(DateUtil.toFullDate(comment.getTimestamp()));
             }
 
             renderState(comment);
@@ -301,27 +301,27 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
             }
         }
 
-        private void renderState(QiscusComment comment) {
+        private void renderState(QMessage comment) {
             if (state != null) {
                 switch (comment.getState()) {
-                    case QiscusComment.STATE_PENDING:
-                    case QiscusComment.STATE_SENDING:
+                    case QMessage.STATE_PENDING:
+                    case QMessage.STATE_SENDING:
                         state.setColorFilter(pendingStateColor);
                         state.setImageResource(R.drawable.ic_qiscus_info_time);
                         break;
-                    case QiscusComment.STATE_ON_QISCUS:
+                    case QMessage.STATE_ON_QISCUS:
                         state.setColorFilter(pendingStateColor);
                         state.setImageResource(R.drawable.ic_qiscus_sending);
                         break;
-                    case QiscusComment.STATE_DELIVERED:
+                    case QMessage.STATE_DELIVERED:
                         state.setColorFilter(pendingStateColor);
                         state.setImageResource(R.drawable.ic_qiscus_read);
                         break;
-                    case QiscusComment.STATE_READ:
+                    case QMessage.STATE_READ:
                         state.setColorFilter(readStateColor);
                         state.setImageResource(R.drawable.ic_qiscus_read);
                         break;
-                    case QiscusComment.STATE_FAILED:
+                    case QMessage.STATE_FAILED:
                         state.setColorFilter(failedStateColor);
                         state.setImageResource(R.drawable.ic_qiscus_sending_failed);
                         break;
@@ -343,13 +343,13 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
         }
 
         @Override
-        void bind(QiscusComment comment) {
+        void bind(QMessage comment) {
             super.bind(comment);
             message.setText(comment.getMessage());
-            QiscusChatRoom chatRoom = QiscusCore.getDataStore().getChatRoom(comment.getRoomId());
+            QChatRoom chatRoom = QiscusCore.getDataStore().getChatRoom(comment.getChatRoomId());
 
             if (sender != null && chatRoom != null) {
-                if (chatRoom.isGroup() == false) {
+                if (chatRoom.getType().equals("single")) {
                     sender.setVisibility(View.GONE);
                 } else {
                     sender.setVisibility(View.VISIBLE);
@@ -357,7 +357,7 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
             }
 
             if (dateOfMessage != null) {
-                dateOfMessage.setText(DateUtil.toFullDate(comment.getTime()));
+                dateOfMessage.setText(DateUtil.toFullDate(comment.getTimestamp()));
             }
         }
 
@@ -390,11 +390,11 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
         }
 
         @Override
-        void bind(QiscusComment comment) {
+        void bind(QMessage comment) {
             super.bind(comment);
 
             try {
-                JSONObject obj = new JSONObject(comment.getExtraPayload());
+                JSONObject obj = comment.getPayload();
                 JSONObject content = obj.getJSONObject("content");
                 String url = content.getString("url");
                 String caption = content.getString("caption");
@@ -413,10 +413,10 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
                     messageCaption.setText(caption);
                 }
 
-                QiscusChatRoom chatRoom = QiscusCore.getDataStore().getChatRoom(comment.getRoomId());
+                QChatRoom chatRoom = QiscusCore.getDataStore().getChatRoom(comment.getChatRoomId());
 
                 if (sender != null) {
-                    if (chatRoom.isGroup() == false) {
+                    if (chatRoom.getType().equals("single")) {
                         sender.setVisibility(View.GONE);
                     } else {
                         sender.setVisibility(View.VISIBLE);
@@ -424,7 +424,7 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
                 }
 
                 if (dateOfMessage != null) {
-                    dateOfMessage.setText(DateUtil.toFullDate(comment.getTime()));
+                    dateOfMessage.setText(DateUtil.toFullDate(comment.getTimestamp()));
                 }
 
                 thumbnail.setOnClickListener(new View.OnClickListener() {
@@ -440,12 +440,12 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
                 });
 
             } catch (Throwable t) {
-                Log.e("SampleCore", "Could not parse malformed JSON: \"" + comment.getExtraPayload() + "\"");
+                Log.e("SampleCore", "Could not parse malformed JSON: \"" + comment.getPayload() + "\"");
             }
 
         }
 
-        public void downloadFile(QiscusComment qiscusComment, String fileName, String URLImage) {
+        public void downloadFile(QMessage qiscusComment, String fileName, String URLImage) {
             QiscusApi.getInstance()
                     .downloadFile(URLImage, fileName, total -> {
                         // here you can get the progress total downloaded
@@ -453,7 +453,7 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
                     .doOnNext(file -> {
                         // here we update the local path of file
                         QiscusCore.getDataStore()
-                                .addOrUpdateLocalPath(qiscusComment.getRoomId(), qiscusComment.getId(), file.getAbsolutePath());
+                                .addOrUpdateLocalPath(qiscusComment.getChatRoomId(), qiscusComment.getId(), file.getAbsolutePath());
 
                         QiscusImageUtil.addImageToGallery(file);
                     })
@@ -485,7 +485,7 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
             showLocalImage(localPath);
         }
 
-        private void showSentImage(QiscusComment comment, String url) {
+        private void showSentImage(QMessage comment, String url) {
             File localPath = QiscusCore.getDataStore().getLocalPath(comment.getId());
             if (localPath != null) {
                 showLocalImage(localPath);
@@ -511,7 +511,7 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
         }
     }
 
-    static class FileVH extends VH implements QiscusComment.ProgressListener, QiscusComment.DownloadingListener  {
+    static class FileVH extends VH implements QMessage.ProgressListener, QMessage.DownloadingListener  {
         private TextView fileName;
         private TextView sender;
         private TextView dateOfMessage;
@@ -528,15 +528,15 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
         }
 
         @Override
-        void bind(QiscusComment comment) {
+        void bind(QMessage comment) {
             super.bind(comment);
             comment.setProgressListener(this);
             comment.setDownloadingListener(this);
 
-            QiscusChatRoom chatRoom = QiscusCore.getDataStore().getChatRoom(comment.getRoomId());
+            QChatRoom chatRoom = QiscusCore.getDataStore().getChatRoom(comment.getChatRoomId());
 
             if (sender != null) {
-                if (chatRoom.isGroup() == false) {
+                if (chatRoom.getType().equals("single")) {
                     sender.setVisibility(View.GONE);
                 } else {
                     sender.setVisibility(View.VISIBLE);
@@ -544,14 +544,14 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
             }
 
             try {
-                JSONObject obj = new JSONObject(comment.getExtraPayload());
+                JSONObject obj = comment.getPayload();
                 JSONObject content = obj.getJSONObject("content");
                 String url = content.getString("url");
                 String filename = content.getString("file_name");
                 fileName.setText(filename);
 
                 if (dateOfMessage != null) {
-                    dateOfMessage.setText(DateUtil.toFullDate(comment.getTime()));
+                    dateOfMessage.setText(DateUtil.toFullDate(comment.getTimestamp()));
                 }
 
                 fileName.setOnClickListener(new View.OnClickListener() {
@@ -568,7 +568,7 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
                 });
 
             } catch (Throwable t) {
-                Log.e("SampleCore", "Could not parse malformed JSON: \"" + comment.getExtraPayload() + "\"");
+                Log.e("SampleCore", "Could not parse malformed JSON: \"" + comment.getPayload() + "\"");
             }
 
         }
@@ -587,7 +587,7 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
         }
 
         @Override
-        public void onProgress(QiscusComment qiscusComment, int percentage) {
+        public void onProgress(QMessage qiscusComment, int percentage) {
             progress.setProgress(percentage);
             icFile.setVisibility(View.GONE);
             if (percentage == 100){
@@ -600,11 +600,11 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
         }
 
         @Override
-        public void onDownloading(QiscusComment qiscusComment, boolean downloading) {
+        public void onDownloading(QMessage qiscusComment, boolean downloading) {
             progress.setVisibility(downloading ? View.VISIBLE : View.GONE);
         }
 
-        public void downloadFile(QiscusComment qiscusComment, String fileName, String URLFile) {
+        public void downloadFile(QMessage qiscusComment, String fileName, String URLFile) {
             QiscusApi.getInstance()
                     .downloadFile(URLFile, fileName, total -> {
                         // here you can get the progress total downloaded
@@ -612,7 +612,7 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
                     .doOnNext(file -> {
                         // here we update the local path of file
                         QiscusCore.getDataStore()
-                                .addOrUpdateLocalPath(qiscusComment.getRoomId(), qiscusComment.getId(), file.getAbsolutePath());
+                                .addOrUpdateLocalPath(qiscusComment.getChatRoomId(), qiscusComment.getId(), file.getAbsolutePath());
 
                         QiscusImageUtil.addImageToGallery(file);
                     })

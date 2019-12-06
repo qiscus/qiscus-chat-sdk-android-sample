@@ -17,8 +17,8 @@ import com.qiscus.mychatui.R;
 import com.qiscus.mychatui.ui.fragment.ChatRoomFragment;
 import com.qiscus.nirmana.Nirmana;
 import com.qiscus.sdk.chat.core.QiscusCore;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
-import com.qiscus.sdk.chat.core.data.model.QiscusRoomMember;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
+import com.qiscus.sdk.chat.core.data.model.QParticipant;
 import com.qiscus.sdk.chat.core.data.remote.QiscusApi;
 
 import java.util.List;
@@ -37,10 +37,10 @@ public class GroupChatRoomActivity extends AppCompatActivity implements ChatRoom
 
     private TextView membersView;
 
-    private QiscusChatRoom chatRoom;
+    private QChatRoom chatRoom;
     private String subtitle;
 
-    public static Intent generateIntent(Context context, QiscusChatRoom chatRoom) {
+    public static Intent generateIntent(Context context, QChatRoom chatRoom) {
         Intent intent = new Intent(context, GroupChatRoomActivity.class);
         intent.putExtra(CHAT_ROOM_KEY, chatRoom);
         return intent;
@@ -93,23 +93,23 @@ public class GroupChatRoomActivity extends AppCompatActivity implements ChatRoom
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(participants -> {
-                    chatRoom.setMember(participants);
-                    membersView.setText(generateSubtitle(chatRoom.getMember()));
+                    chatRoom.setParticipants(participants);
+                    membersView.setText(generateSubtitle(chatRoom.getParticipants()));
                 }, throwable -> {
                     throwable.printStackTrace();
                 });
     }
 
-    private String generateSubtitle(List<QiscusRoomMember> members) {
+    private String generateSubtitle(List<QParticipant> members) {
         if (!TextUtils.isEmpty(subtitle)) {
             return subtitle;
         }
         StringBuilder builder = new StringBuilder();
         int count = 0;
-        for (QiscusRoomMember member : members) {
-            if (!member.getEmail().equalsIgnoreCase(QiscusCore.getQiscusAccount().getEmail())) {
+        for (QParticipant member : members) {
+            if (!member.getId().equalsIgnoreCase(QiscusCore.getQiscusAccount().getId())) {
                 count++;
-                builder.append(member.getUsername().split(" ")[0]);
+                builder.append(member.getName().split(" ")[0]);
                 if (count < members.size() - 1) {
                     builder.append(", ");
                 }
@@ -129,20 +129,20 @@ public class GroupChatRoomActivity extends AppCompatActivity implements ChatRoom
     @Override
     public void onUserTyping(String user, boolean typing) {
         if (typing) {
-            QiscusRoomMember member = findMember(user);
+            QParticipant member = findMember(user);
             if (member != null) {
-                membersView.setText(member.getUsername().split(" ")[0] + " is typing...");
+                membersView.setText(member.getName().split(" ")[0] + " is typing...");
             } else {
-                membersView.setText(generateSubtitle(chatRoom.getMember()));
+                membersView.setText(generateSubtitle(chatRoom.getParticipants()));
             }
         } else {
-            membersView.setText(generateSubtitle(chatRoom.getMember()));
+            membersView.setText(generateSubtitle(chatRoom.getParticipants()));
         }
     }
 
-    private QiscusRoomMember findMember(String userId) {
-        for (QiscusRoomMember member : chatRoom.getMember()) {
-            if (member.getEmail().equals(userId)) {
+    private QParticipant findMember(String userId) {
+        for (QParticipant member : chatRoom.getParticipants()) {
+            if (member.getId().equals(userId)) {
                 return member;
             }
         }

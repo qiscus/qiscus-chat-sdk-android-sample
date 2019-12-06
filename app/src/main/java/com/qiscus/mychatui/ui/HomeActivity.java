@@ -24,8 +24,8 @@ import com.qiscus.mychatui.ui.adapter.ChatRoomAdapter;
 import com.qiscus.mychatui.ui.adapter.OnItemClickListener;
 import com.qiscus.nirmana.Nirmana;
 import com.qiscus.sdk.chat.core.QiscusCore;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
-import com.qiscus.sdk.chat.core.event.QiscusCommentReceivedEvent;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
+import com.qiscus.sdk.chat.core.event.QMessageReceivedEvent;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -77,7 +77,7 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
                         .placeholder(R.drawable.ic_qiscus_avatar)
                         .error(R.drawable.ic_qiscus_avatar)
                         .dontAnimate())
-                .load(QiscusCore.getQiscusAccount().getAvatar())
+                .load(QiscusCore.getQiscusAccount().getAvatarUrl())
                 .into(avatarProfile);
 
         avatarProfile.setOnClickListener(v -> {
@@ -109,7 +109,7 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
     }
 
     @Subscribe
-    public void onCommentReceivedEvent(QiscusCommentReceivedEvent event) {
+    public void onCommentReceivedEvent(QMessageReceivedEvent event) {
         homePresenter.loadChatRooms();
     }
 
@@ -121,7 +121,7 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
 
 
     @Override
-    public void showChatRooms(List<QiscusChatRoom> chatRooms) {
+    public void showChatRooms(List<QChatRoom> chatRooms) {
         if (chatRooms.size() == 0) {
             recyclerView.setVisibility(View.GONE);
             linEmptyChatRooms.setVisibility(View.VISIBLE);
@@ -133,12 +133,12 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
     }
 
     @Override
-    public void showChatRoomPage(QiscusChatRoom chatRoom) {
+    public void showChatRoomPage(QChatRoom chatRoom) {
         startActivity(ChatRoomActivity.generateIntent(this, chatRoom));
     }
 
     @Override
-    public void showGroupChatRoomPage(QiscusChatRoom chatRoom) {
+    public void showGroupChatRoomPage(QChatRoom chatRoom) {
         startActivity(GroupChatRoomActivity.generateIntent(this, chatRoom));
     }
 

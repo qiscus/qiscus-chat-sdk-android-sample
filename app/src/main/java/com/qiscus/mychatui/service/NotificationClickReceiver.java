@@ -8,8 +8,8 @@ import android.widget.Toast;
 import com.qiscus.mychatui.ui.ChatRoomActivity;
 import com.qiscus.mychatui.ui.GroupChatRoomActivity;
 import com.qiscus.sdk.chat.core.QiscusCore;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
-import com.qiscus.sdk.chat.core.data.model.QiscusComment;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
+import com.qiscus.sdk.chat.core.data.model.QMessage;
 import com.qiscus.sdk.chat.core.data.remote.QiscusApi;
 
 import rx.android.schedulers.AndroidSchedulers;
@@ -23,9 +23,9 @@ public class NotificationClickReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        QiscusComment qiscusComment = intent.getParcelableExtra("data");
+        QMessage qiscusComment = intent.getParcelableExtra("data");
         QiscusApi.getInstance()
-                .getChatRoom(qiscusComment.getRoomId())
+                .getChatRoom(qiscusComment.getChatRoomId())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .doOnNext(qiscusChatRoom -> QiscusCore.getDataStore().addOrUpdate(qiscusChatRoom))
@@ -34,8 +34,8 @@ public class NotificationClickReceiver extends BroadcastReceiver {
                         Toast.makeText(context, throwable.getLocalizedMessage(), Toast.LENGTH_SHORT).show());
     }
 
-    private Intent getChatRoomActivity(Context context, QiscusChatRoom qiscusChatRoom) {
-        return qiscusChatRoom.isGroup() ? GroupChatRoomActivity.generateIntent(context, qiscusChatRoom) :
+    private Intent getChatRoomActivity(Context context, QChatRoom qiscusChatRoom) {
+        return qiscusChatRoom.getType().equals("group") ? GroupChatRoomActivity.generateIntent(context, qiscusChatRoom) :
                 ChatRoomActivity.generateIntent(context, qiscusChatRoom);
     }
 

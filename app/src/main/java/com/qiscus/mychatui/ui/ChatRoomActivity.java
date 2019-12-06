@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,8 +17,9 @@ import com.qiscus.mychatui.R;
 import com.qiscus.mychatui.ui.fragment.ChatRoomFragment;
 import com.qiscus.nirmana.Nirmana;
 import com.qiscus.sdk.chat.core.QiscusCore;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
-import com.qiscus.sdk.chat.core.data.model.QiscusRoomMember;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
+import com.qiscus.sdk.chat.core.data.model.QParticipant;
+import com.qiscus.sdk.chat.core.data.remote.QiscusApi;
 import com.qiscus.sdk.chat.core.data.remote.QiscusPusherApi;
 import com.qiscus.sdk.chat.core.event.QiscusUserStatusEvent;
 import com.qiscus.sdk.chat.core.util.QiscusDateUtil;
@@ -26,6 +28,8 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import rx.Observable;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 /**
  * Created on : January 30, 2018
@@ -37,11 +41,11 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatRoomFragm
     private static final String CHAT_ROOM_KEY = "extra_chat_room";
 
     private TextView tvSubtitle;
-    private QiscusChatRoom chatRoom;
+    private QChatRoom chatRoom;
     private String opponentEmail;
     private LinearLayout linTitleSubtitle;
 
-    public static Intent generateIntent(Context context, QiscusChatRoom chatRoom) {
+    public static Intent generateIntent(Context context, QChatRoom chatRoom) {
         Intent intent = new Intent(context, ChatRoomActivity.class);
         intent.putExtra(CHAT_ROOM_KEY, chatRoom);
         return intent;
@@ -63,6 +67,11 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatRoomFragm
         ImageView btBack = findViewById(R.id.bt_back);
         tvSubtitle = findViewById(R.id.subtitle);
         linTitleSubtitle = findViewById(R.id.linTitleSubtile);
+
+        ImageView btBlock = findViewById(R.id.bt_block);
+
+        ImageView btUnblock = findViewById(R.id.bt_unblock);
+
 
         Nirmana.getInstance().get()
                 .setDefaultRequestOptions(new RequestOptions()
@@ -89,13 +98,45 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatRoomFragm
                 onBackPressed();
             }
         });
+
+        btBlock.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                QiscusApi.getInstance().blockUser(chatRoom.getParticipants().get(1).getId())
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(account -> {
+                            // on success
+                            Toast.makeText(getApplicationContext(),"Success block user",Toast.LENGTH_SHORT).show();
+                        }, throwable -> {
+                            // on error
+                            Toast.makeText(getApplicationContext(),"Failed block user",Toast.LENGTH_SHORT).show();
+                        });
+            }
+        });
+
+        btUnblock.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                QiscusApi.getInstance().unblockUser(chatRoom.getParticipants().get(1).getId())
+                        .subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread())
+                        .subscribe(account -> {
+                            // on success
+                            Toast.makeText(getApplicationContext(),"Success unBlock user",Toast.LENGTH_SHORT).show();
+                            }, throwable -> {
+                            // on error
+                            Toast.makeText(getApplicationContext(),"Failed unBlock user",Toast.LENGTH_SHORT).show();
+                            });
+            }
+        });
     }
 
     private void getOpponentIfNotGroupEmail() {
-        if (!chatRoom.isGroup()) {
-            opponentEmail = Observable.from(chatRoom.getMember())
-                    .map(QiscusRoomMember::getEmail)
-                    .filter(email -> !email.equals(QiscusCore.getQiscusAccount().getEmail()))
+        if (!chatRoom.getType().equals("group")) {
+            opponentEmail = Observable.from(chatRoom.getParticipants())
+                    .map(QParticipant::getId)
+                    .filter(email -> !email.equals(QiscusCore.getQiscusAccount().getId()))
                     .first()
                     .toBlocking()
                     .single();
@@ -109,13 +150,13 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatRoomFragm
     }
 
     private void listenUser() {
-        if (!chatRoom.isGroup() && opponentEmail != null) {
+        if (!chatRoom.getType().equals("group") && opponentEmail != null) {
             QiscusPusherApi.getInstance().subscribeUserOnlinePresence(opponentEmail);
         }
     }
 
     private void unlistenUser() {
-        if (!chatRoom.isGroup() && opponentEmail != null) {
+        if (!chatRoom.getType().equals("group") && opponentEmail != null) {
             QiscusPusherApi.getInstance().unsubscribeUserOnlinePresence(opponentEmail);
         }
     }

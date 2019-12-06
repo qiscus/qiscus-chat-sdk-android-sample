@@ -14,7 +14,8 @@ import com.qiscus.mychatui.data.source.UserRepository;
 import com.qiscus.mychatui.util.Action;
 import com.qiscus.mychatui.util.AvatarUtil;
 import com.qiscus.sdk.chat.core.QiscusCore;
-import com.qiscus.sdk.chat.core.data.model.QiscusAccount;
+import com.qiscus.sdk.chat.core.data.model.QAccount;
+import com.qiscus.sdk.chat.core.data.model.QUser;
 import com.qiscus.sdk.chat.core.data.remote.QiscusApi;
 
 import org.json.JSONException;
@@ -72,8 +73,8 @@ public class UserRepositoryImpl implements UserRepository {
         QiscusApi.getInstance().getUsers(searchUsername, page, limit)
                 .flatMap(Observable::from)
                 .filter(user -> !user.equals(getCurrentUser()))
-                .filter(user -> !user.getUsername().equals(""))
-                .map(this::mapFromQiscusAccount)
+                .filter(user -> !user.getName().equals(""))
+                .map(this::mapFromQUser)
                 .toList()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -142,11 +143,19 @@ public class UserRepositoryImpl implements UserRepository {
         return new String(bytes);
     }
 
-    private User mapFromQiscusAccount(QiscusAccount qiscusAccount) {
+    private User mapFromQiscusAccount(QAccount qiscusAccount) {
         User user = new User();
-        user.setId(qiscusAccount.getEmail());
-        user.setName(qiscusAccount.getUsername());
-        user.setAvatarUrl(qiscusAccount.getAvatar());
+        user.setId(qiscusAccount.getId());
+        user.setName(qiscusAccount.getName());
+        user.setAvatarUrl(qiscusAccount.getAvatarUrl());
+        return user;
+    }
+
+    private User mapFromQUser(QUser qUser) {
+        User user = new User();
+        user.setId(qUser.getId());
+        user.setName(qUser.getName());
+        user.setAvatarUrl(qUser.getAvatarUrl());
         return user;
     }
 }

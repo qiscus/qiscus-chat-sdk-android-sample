@@ -3,7 +3,7 @@ package com.qiscus.mychatui.presenter;
 import com.qiscus.mychatui.data.model.User;
 import com.qiscus.mychatui.data.source.ChatRoomRepository;
 import com.qiscus.mychatui.data.source.UserRepository;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
 
 import java.util.List;
 
@@ -38,13 +38,13 @@ public class ContactPresenter {
         });
     }
 
-    public void search(String keyword) {
-        Observable.from(users)
-                .filter(user -> user.getName().toLowerCase().contains(keyword.toLowerCase()))
-                .toList()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(users -> view.showContacts(users), throwable -> view.showErrorMessage(throwable.getMessage()));
+    public void search(long page, String keyword) {
+        userRepository.getUsers(page, 100, keyword, users -> {
+            view.searchContacts(users);
+            this.users = users;
+        }, throwable -> {
+            view.showErrorMessage(throwable.getMessage());
+        });
 
     }
 
@@ -57,7 +57,9 @@ public class ContactPresenter {
     public interface View {
         void showContacts(List<User> contacts);
 
-        void showChatRoomPage(QiscusChatRoom chatRoom);
+        void searchContacts(List<User> contacts);
+
+        void showChatRoomPage(QChatRoom chatRoom);
 
         void showErrorMessage(String errorMessage);
     }
