@@ -92,19 +92,10 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
         switch (comment.getType()) {
             case TEXT:
                 return comment.isMyComment() ? TYPE_MY_TEXT : TYPE_OPPONENT_TEXT;
-            case CUSTOM:
-                try {
-                    JSONObject obj = new JSONObject(comment.getExtraPayload());
-                    String type = obj.getString("type");
-                    if (type.contains("image")) {
-                        return comment.isMyComment() ? TYPE_MY_IMAGE : TYPE_OPPONENT_IMAGE;
-                    } else {
-                        return comment.isMyComment() ? TYPE_MY_FILE : TYPE_OPPONENT_FILE;
-                    }
-                } catch (Throwable t) {
-                    return comment.isMyComment() ? TYPE_MY_TEXT : TYPE_OPPONENT_TEXT;
-                }
-
+            case IMAGE:
+                return comment.isMyComment() ? TYPE_MY_IMAGE : TYPE_OPPONENT_IMAGE;
+            case FILE:
+                return comment.isMyComment() ? TYPE_MY_FILE : TYPE_OPPONENT_FILE;
             default:
                 return comment.isMyComment() ? TYPE_MY_TEXT : TYPE_OPPONENT_TEXT;
         }
@@ -395,10 +386,9 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
 
             try {
                 JSONObject obj = new JSONObject(comment.getExtraPayload());
-                JSONObject content = obj.getJSONObject("content");
-                String url = content.getString("url");
-                String caption = content.getString("caption");
-                String filename = content.getString("file_name");
+                String url = obj.getString("url");
+                String caption = obj.getString("caption");
+                String filename = obj.getString("file_name");
 
                 if (url.startsWith("http")) { //We have sent it
                     showSentImage(comment, url);
@@ -545,9 +535,8 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
 
             try {
                 JSONObject obj = new JSONObject(comment.getExtraPayload());
-                JSONObject content = obj.getJSONObject("content");
-                String url = content.getString("url");
-                String filename = content.getString("file_name");
+                String url = obj.getString("url");
+                String filename = obj.getString("file_name");
                 fileName.setText(filename);
 
                 if (dateOfMessage != null) {
