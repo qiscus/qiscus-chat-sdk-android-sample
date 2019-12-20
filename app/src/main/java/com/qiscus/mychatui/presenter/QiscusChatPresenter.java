@@ -6,6 +6,7 @@ import androidx.core.util.Pair;
 
 import com.google.gson.JsonObject;
 import com.qiscus.mychatui.R;
+import com.qiscus.mychatui.util.QiscusImageUtil;
 import com.qiscus.sdk.chat.core.QiscusCore;
 import com.qiscus.sdk.chat.core.data.local.QiscusCacheManager;
 import com.qiscus.sdk.chat.core.data.model.QAccount;
@@ -25,6 +26,7 @@ import com.qiscus.sdk.chat.core.event.QiscusClearMessagesEvent;
 import com.qiscus.sdk.chat.core.event.QiscusMqttStatusEvent;
 import com.qiscus.sdk.chat.core.presenter.QiscusChatRoomEventHandler;
 import com.qiscus.sdk.chat.core.util.QiscusAndroidUtil;
+import com.qiscus.sdk.chat.core.util.QiscusErrorLogger;
 import com.qiscus.sdk.chat.core.util.QiscusFileUtil;
 import com.qiscus.sdk.chat.core.util.QiscusTextUtil;
 
@@ -198,14 +200,10 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
 
     public void sendFile(File file, String caption) {
         File compressedFile = file;
-        Boolean isImage = false;
-        String fileAttachment = "image";
-        String sendMassage = "Send Image";
-        if (QiscusFileUtil.isImage(file.getPath()) && !file.getName().endsWith(".gif")) {
+        if (QiscusImageUtil.isImage(file) && !file.getName().endsWith(".gif")) {
             try {
-                isImage = true;
-                compressedFile = new Compressor(QiscusCore.getApps()).compressToFile(file);
-            } catch (NullPointerException | IOException e) {
+                compressedFile = QiscusImageUtil.compressImage(file);
+            } catch (NullPointerException e) {
                 view.showError(QiscusTextUtil.getString(R.string.qiscus_corrupted_file));
                 return;
             }
@@ -218,56 +216,29 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
             return;
         }
 
-        JSONObject json = new JSONObject();
-        try {
-            json.put("url", compressedFile.getPath())
-                    .put("caption", caption)
-                    .put("file_name", file.getName());
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        if (isImage == false) {
-            fileAttachment = "file";
-            sendMassage = "Send FIle";
-        }
-
-        QMessage qiscusComment = QMessage.generateCustomMessage(room.getId(), sendMassage, fileAttachment, json);
-
+        QMessage qiscusComment = QMessage.generateFileAttachmentMessage(room.getId(),
+                compressedFile.getPath(), caption, file.getName());
         qiscusComment.setDownloading(true);
         view.onSendingComment(qiscusComment);
 
         File finalCompressedFile = compressedFile;
-        Subscription subscription = QiscusApi.getInstance()
-                .upload(compressedFile, percentage ->
-                {
+
+        Subscription subscription = QiscusApi.getInstance().sendFileMessage(
+                qiscusComment, finalCompressedFile, percentage -> {
                     qiscusComment.setProgress((int) percentage);
-                })
-                .doOnSubscribe(() -> QiscusCore.getDataStore().addOrUpdate(qiscusComment))
-                .flatMap(uri -> {
-                    try {
-                        JSONObject jsonData = qiscusComment.getPayload();
-                        JSONObject content = jsonData.getJSONObject("content");
-                        content.put("url", uri);
-                        qiscusComment.setPayload(jsonData);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    return QiscusApi.getInstance().sendMessage(qiscusComment);
-                })
-                .doOnNext(commentSend -> {
-                    QiscusCore.getDataStore()
-                            .addOrUpdateLocalPath(commentSend.getChatRoomId(), commentSend.getId(), finalCompressedFile.getAbsolutePath());
-                    qiscusComment.setDownloading(false);
-                    commentSuccess(commentSend);
-                })
+                }).doOnSubscribe(() -> QiscusCore.getDataStore().addOrUpdate(qiscusComment))
+                .doOnNext(this::commentSuccess)
                 .doOnError(throwable -> commentFail(throwable, qiscusComment))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe(commentSend -> {
                     if (commentSend.getChatRoomId() == room.getId()) {
+                        commentSend.setDownloading(false);
                         view.onSuccessSendComment(commentSend);
+                        QiscusCore.getDataStore()
+                                .addOrUpdateLocalPath(commentSend.getChatRoomId(),
+                                        commentSend.getId(), finalCompressedFile.getAbsolutePath());
                     }
                 }, throwable -> {
                     throwable.printStackTrace();
