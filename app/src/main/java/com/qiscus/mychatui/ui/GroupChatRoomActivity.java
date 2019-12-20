@@ -32,7 +32,7 @@ import rx.schedulers.Schedulers;
  * Name       : Zetra
  * GitHub     : https://github.com/zetbaitsu
  */
-public class GroupChatRoomActivity extends AppCompatActivity implements ChatRoomFragment.UserTypingListener, QiscusApi.MetaRoomMembersListener {
+public class GroupChatRoomActivity extends AppCompatActivity implements ChatRoomFragment.UserTypingListener, QiscusApi.MetaRoomParticipantsListener {
     private static final String CHAT_ROOM_KEY = "extra_chat_room";
 
     private TextView membersView;
@@ -89,7 +89,7 @@ public class GroupChatRoomActivity extends AppCompatActivity implements ChatRoom
     }
 
     private void setParticipants() {
-        QiscusApi.getInstance().getParticipants(chatRoom.getUniqueId(), 0, null, this)
+        QiscusApi.getInstance().getParticipants(chatRoom.getUniqueId(), 1, 100, null, this)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(participants -> {

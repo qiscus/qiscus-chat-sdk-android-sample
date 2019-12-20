@@ -44,7 +44,7 @@ import id.zelory.compressor.Compressor;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class RoomInfoActivity extends AppCompatActivity implements OnItemClickListener, QiscusApi.MetaRoomMembersListener {
+public class RoomInfoActivity extends AppCompatActivity implements OnItemClickListener, QiscusApi.MetaRoomParticipantsListener {
     protected static final int TAKE_PICTURE_REQUEST = 3;
     protected static final int RC_CAMERA_PERMISSION = 128;
     private static final String CHAT_ROOM_DATA = "chat_room_data";
@@ -270,7 +270,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
                 .load(chatRoom.getAvatarUrl())
                 .into(ivAvatar);
 
-        QiscusApi.getInstance().getParticipants(chatRoom.getUniqueId(), 0, null, this)
+        QiscusApi.getInstance().getParticipants(chatRoom.getUniqueId(), 1, 100, null,this)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(participants -> {
