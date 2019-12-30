@@ -89,7 +89,7 @@ public class GroupChatCreationActivity extends AppCompatActivity implements Grou
             @Override
             public boolean onQueryTextSubmit(String query) {
                 query = query.toLowerCase();
-                presenter.search(query);
+                presenter.search(1, query);
                 searchView.clearFocus();
                 return true;
             }
@@ -97,7 +97,7 @@ public class GroupChatCreationActivity extends AppCompatActivity implements Grou
             @Override
             public boolean onQueryTextChange(String newText) {
                 newText = newText.toLowerCase();
-                presenter.search(newText);
+                presenter.search(1, newText);
                 return true;
             }
         });

@@ -105,10 +105,18 @@ public class ChatRoomAdapter extends SortedRecyclerViewAdapter<QChatRoom, ChatRo
             name.setText(chatRoom.getName());
             QMessage lastComment = chatRoom.getLastMessage();
             if (lastComment != null && lastComment.getId() > 0) {
-                String lastMessageText = lastComment.isMyComment() ? "You: " : lastComment.getSender().getName().split(" ")[0] + ": ";
-                lastMessageText += chatRoom.getLastMessage().getType() == QMessage.Type.IMAGE
-                        ? "\uD83D\uDCF7 send an image" : lastComment.getMessage();
-                lastMessage.setText(lastMessageText);
+                if (lastComment.getSender() != null) {
+                    String lastMessageText = lastComment.isMyComment() ? "You: " : lastComment.getSender().getName().split(" ")[0] + ": ";
+                    lastMessageText += chatRoom.getLastMessage().getType() == QMessage.Type.IMAGE
+                            ? "\uD83D\uDCF7 send an image" : lastComment.getMessage();
+                    lastMessage.setText(lastMessageText);
+                }else{
+                    String lastMessageText = "";
+                    lastMessageText += chatRoom.getLastMessage().getType() == QMessage.Type.IMAGE
+                            ? "\uD83D\uDCF7 send an image" : lastComment.getMessage();
+                    lastMessage.setText(lastMessageText);
+                }
+
                 tv_time.setText(DateUtil.getLastMessageTimestamp(lastComment.getTimestamp()));
             } else {
                 lastMessage.setText("");
