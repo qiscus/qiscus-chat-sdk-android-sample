@@ -105,10 +105,18 @@ public class ChatRoomAdapter extends SortedRecyclerViewAdapter<QiscusChatRoom, C
             name.setText(chatRoom.getName());
             QiscusComment lastComment = chatRoom.getLastComment();
             if (lastComment != null && lastComment.getId() > 0) {
-                String lastMessageText = lastComment.isMyComment() ? "You: " : lastComment.getSender().split(" ")[0] + ": ";
-                lastMessageText += chatRoom.getLastComment().getType() == QiscusComment.Type.IMAGE
-                        ? "\uD83D\uDCF7 send an image" : lastComment.getMessage();
-                lastMessage.setText(lastMessageText);
+                if (lastComment.getSender() != null) {
+                    String lastMessageText = lastComment.isMyComment() ? "You: " : lastComment.getSender().split(" ")[0] + ": ";
+                    lastMessageText += chatRoom.getLastComment().getType() == QiscusComment.Type.IMAGE
+                            ? "\uD83D\uDCF7 send an image" : lastComment.getMessage();
+                    lastMessage.setText(lastMessageText);
+                }else{
+                    String lastMessageText = "";
+                    lastMessageText += chatRoom.getLastComment().getType() == QiscusComment.Type.IMAGE
+                            ? "\uD83D\uDCF7 send an image" : lastComment.getMessage();
+                    lastMessage.setText(lastMessageText);
+                }
+
                 tv_time.setText(DateUtil.getLastMessageTimestamp(lastComment.getTime()));
             } else {
                 lastMessage.setText("");

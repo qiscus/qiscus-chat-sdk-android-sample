@@ -54,6 +54,26 @@ public class GroupChatCreationPresenter {
 
     }
 
+    public void search(long page, String keyword) {
+        userRepository.getUsers(page, 100, keyword, users -> {
+            for (User user : users) {
+                SelectableUser selectableUser = new SelectableUser(user);
+                int index = contacts.indexOf(selectableUser);
+                if (index >= 0) {
+                    contacts.get(index).setUser(user);
+                } else {
+                    contacts.add(selectableUser);
+                }
+            }
+
+            search(keyword);
+
+        }, throwable -> {
+            view.showErrorMessage(throwable.getMessage());
+        });
+
+    }
+
     public void selectContact(SelectableUser contact) {
         int index = contacts.indexOf(contact);
         if (index >= 0) {
