@@ -356,10 +356,16 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
         QiscusApi.getInstance()
                 .upload(compressedFile, percentage ->
                 {
-                    //show percentage
-                    int i = (int) percentage;
-                    progress.setProgress(i);
-                    progress.setVisibility(View.VISIBLE);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            //show percentage
+                            int i = (int) percentage;
+                            progress.setProgress(i);
+                            progress.setVisibility(View.VISIBLE);
+                        }
+                    });
+
                 })
                 .doOnError(throwable -> {
                     progress.setVisibility(View.GONE);
