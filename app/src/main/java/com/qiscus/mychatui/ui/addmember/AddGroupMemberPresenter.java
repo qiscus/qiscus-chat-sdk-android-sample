@@ -61,8 +61,38 @@ public class AddGroupMemberPresenter {
                 .toList()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(users -> view.showContacts(users), throwable -> view.showErrorMessage(throwable.getMessage()));
+                .subscribe(users -> view.searchContacts(users), throwable -> view.showErrorMessage(throwable.getMessage()));
 
+    }
+
+    public void search(long page, String keyword) {
+        userRepository.getUsers(page, 100, keyword, users -> {
+                    Observable.from(users)
+                            .filter(user -> {
+                                QParticipant member = new QParticipant();
+                                member.setId(user.getId());
+                                return !members.contains(member);
+                            })
+                            .toList()
+                            .subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(newUsers -> {
+                                        for (User user : users) {
+                                            SelectableUser selectableUser = new SelectableUser(user);
+                                            int index = contacts.indexOf(selectableUser);
+                                            if (index >= 0) {
+                                                contacts.get(index).setUser(user);
+                                            } else {
+                                                contacts.add(selectableUser);
+                                            }
+                                        }
+                                        //view.showContacts(contacts);
+                                        search(keyword);
+                                    },
+                                    throwable -> view.showErrorMessage(throwable.getMessage()));
+                },
+                throwable -> view.showErrorMessage(throwable.getMessage())
+        );
     }
 
     public void selectContact(SelectableUser contact) {
@@ -118,6 +148,8 @@ public class AddGroupMemberPresenter {
     public interface View {
 
         void showContacts(List<SelectableUser> contacts);
+
+        void searchContacts(List<SelectableUser> contacts);
 
         void onParticipantAdded(List<User> user);
 

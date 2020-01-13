@@ -40,6 +40,7 @@ public class ContactActivity extends AppCompatActivity implements ContactPresent
     private ContactPresenter contactPresenter;
     private Integer page = 1;
     private Boolean isLoading = false;
+    private String lastSearch = "";
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,7 +76,7 @@ public class ContactActivity extends AppCompatActivity implements ContactPresent
                     if (isLoading == false){
                         isLoading = true;
                         page = page + 1;
-                        contactPresenter.loadContacts(page,100, "");
+                        contactPresenter.loadContacts(page,100, lastSearch);
                     }
 
                 }
@@ -95,6 +96,7 @@ public class ContactActivity extends AppCompatActivity implements ContactPresent
                 page = 1;
                 query = query.toLowerCase();
                 contactPresenter.search(page, query);
+                lastSearch = query;
                 searchView.clearFocus();
                 return true;
             }
@@ -103,6 +105,7 @@ public class ContactActivity extends AppCompatActivity implements ContactPresent
             public boolean onQueryTextChange(String newText) {
                 page = 1;
                 newText = newText.toLowerCase();
+                lastSearch = newText;
                 contactPresenter.search(page,newText);
                 return true;
             }

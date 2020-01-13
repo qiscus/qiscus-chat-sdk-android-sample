@@ -44,6 +44,9 @@ public class AddGroupMemberActivity extends AppCompatActivity implements AddGrou
     private ImageView imgNext;
     private ContactAdapter contactAdapter;
     private SearchView searchView;
+    private Integer page = 1;
+    private Boolean isLoading = false;
+    private String lastSearch = "";
 
     public static Intent generateIntent(Context context, QChatRoom qiscusChatRoom) {
         Intent intent = new Intent(context, AddGroupMemberActivity.class);
@@ -81,7 +84,29 @@ public class AddGroupMemberActivity extends AppCompatActivity implements AddGrou
         AppComponent appComponent = MyApplication.getInstance().getComponent();
         presenter = new AddGroupMemberPresenter(this, appComponent.getUserRepository(),
                 appComponent.getChatRoomRepository(), qiscusChatRoom.getParticipants());
-        presenter.loadContacts(1, 100, "");
+        presenter.loadContacts(page, 100, "");
+
+        contactRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                LinearLayoutManager layoutManager = LinearLayoutManager.class.cast(recyclerView.getLayoutManager());
+                int visibleItemCount = layoutManager.getChildCount();
+                int totalItemCount = layoutManager.getItemCount();
+                int pastVisibleItems = layoutManager.findFirstCompletelyVisibleItemPosition();
+
+                if(pastVisibleItems+visibleItemCount >= totalItemCount){
+                    // End of the list is here.
+                    if (isLoading == false){
+                        isLoading = true;
+                        page = page + 1;
+                        presenter.loadContacts(page,100, lastSearch);
+                    }
+
+                }
+            }
+        });
 
         imgNext.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -112,7 +137,8 @@ public class AddGroupMemberActivity extends AppCompatActivity implements AddGrou
             @Override
             public boolean onQueryTextSubmit(String query) {
                 query = query.toLowerCase();
-                presenter.search(query);
+                presenter.search(1,query);
+                lastSearch = query;
                 searchView.clearFocus();
                 return true;
             }
@@ -120,7 +146,8 @@ public class AddGroupMemberActivity extends AppCompatActivity implements AddGrou
             @Override
             public boolean onQueryTextChange(String newText) {
                 newText = newText.toLowerCase();
-                presenter.search(newText);
+                presenter.search(1,newText);
+                lastSearch = newText;
                 return true;
             }
         });
@@ -136,6 +163,17 @@ public class AddGroupMemberActivity extends AppCompatActivity implements AddGrou
 
     @Override
     public void showContacts(List<SelectableUser> contacts) {
+        isLoading = false;
+        if (contacts.isEmpty()){
+            return;
+        } else {
+            contactAdapter.addOrUpdate(contacts);
+        }
+    }
+
+    @Override
+    public void searchContacts(List<SelectableUser> contacts) {
+        isLoading = false;
         contactAdapter.clear();
         contactAdapter.addOrUpdate(contacts);
     }
