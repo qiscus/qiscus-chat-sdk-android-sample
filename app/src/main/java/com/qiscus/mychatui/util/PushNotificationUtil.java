@@ -31,9 +31,10 @@ public final class PushNotificationUtil {
     }
 
     public static void showNotification(Context context, QMessage qiscusComment) {
-//        if (QiscusCore.getDataStore().isContains(qiscusComment)) {
-//            return;
-//        }
+
+        if (qiscusComment.isMyComment() && QiscusCore.getDataStore().isContains(qiscusComment)) {
+            return;
+        }
 
         QiscusCore.getDataStore().addOrUpdate(qiscusComment);
 
