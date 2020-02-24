@@ -3,6 +3,7 @@ package com.qiscus.mychatui.data.source.impl;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
+import android.util.Log;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -93,8 +94,14 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public void logout() {
+        QiscusCore.removeDeviceToken(getCurrentDeviceToken());
         QiscusCore.clearUser();
         sharedPreferences.edit().clear().apply();
+    }
+
+    @Override
+    public void setDeviceToken(String token) {
+        setCurrentDeviceToken(token);
     }
 
     private Observable<User> getCurrentUserObservable() {
@@ -116,6 +123,16 @@ public class UserRepositoryImpl implements UserRepository {
     private void setCurrentUser(User user) {
         sharedPreferences.edit()
                 .putString("current_user", gson.toJson(user))
+                .apply();
+    }
+
+    private String getCurrentDeviceToken() {
+        return sharedPreferences.getString("current_device_token", "");
+    }
+
+    private void setCurrentDeviceToken(String token) {
+        sharedPreferences.edit()
+                .putString("current_device_token", token)
                 .apply();
     }
 

@@ -22,4 +22,6 @@ public interface UserRepository {
     void updateProfile(String name, Action<User> onSuccess, Action<Throwable> onError);
 
     void logout();
+
+    void setDeviceToken(String token);
 }

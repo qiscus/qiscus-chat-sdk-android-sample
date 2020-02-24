@@ -22,6 +22,7 @@ import com.qiscus.mychatui.R;
 import com.qiscus.mychatui.presenter.HomePresenter;
 import com.qiscus.mychatui.ui.adapter.ChatRoomAdapter;
 import com.qiscus.mychatui.ui.adapter.OnItemClickListener;
+import com.qiscus.mychatui.util.FirebaseUtil;
 import com.qiscus.nirmana.Nirmana;
 import com.qiscus.sdk.chat.core.QiscusCore;
 import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
@@ -46,6 +47,8 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
         setContentView(R.layout.activity_home);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        FirebaseUtil.sendCurrentToken();
 
         linEmptyChatRooms = findViewById(R.id.linEmptyChatRooms);
         createChat = findViewById(R.id.create_chat);
