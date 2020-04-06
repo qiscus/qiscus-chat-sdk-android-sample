@@ -1,7 +1,6 @@
 package com.qiscus.mychatui.ui.adapter;
 
 import android.content.Context;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,12 +8,15 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.bumptech.glide.request.RequestOptions;
 import com.qiscus.mychatui.R;
+import com.qiscus.mychatui.util.Const;
 import com.qiscus.mychatui.util.DateUtil;
 import com.qiscus.nirmana.Nirmana;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
-import com.qiscus.sdk.chat.core.data.model.QiscusComment;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
+import com.qiscus.sdk.chat.core.data.model.QMessage;
 
 import java.util.List;
 
@@ -24,7 +26,7 @@ import java.util.List;
  * Name       : Zetra
  * GitHub     : https://github.com/zetbaitsu
  */
-public class ChatRoomAdapter extends SortedRecyclerViewAdapter<QiscusChatRoom, ChatRoomAdapter.VH> {
+public class ChatRoomAdapter extends SortedRecyclerViewAdapter<QChatRoom, ChatRoomAdapter.VH> {
 
     private Context context;
     private OnItemClickListener onItemClickListener;
@@ -34,13 +36,13 @@ public class ChatRoomAdapter extends SortedRecyclerViewAdapter<QiscusChatRoom, C
     }
 
     @Override
-    protected Class<QiscusChatRoom> getItemClass() {
-        return QiscusChatRoom.class;
+    protected Class<QChatRoom> getItemClass() {
+        return QChatRoom.class;
     }
 
     @Override
-    protected int compare(QiscusChatRoom item1, QiscusChatRoom item2) {
-        return item2.getLastComment().getTime().compareTo(item1.getLastComment().getTime());
+    protected int compare(QChatRoom item1, QChatRoom item2) {
+        return item2.getLastMessage().getTimestamp().compareTo(item1.getLastMessage().getTimestamp());
     }
 
     @Override
@@ -54,8 +56,8 @@ public class ChatRoomAdapter extends SortedRecyclerViewAdapter<QiscusChatRoom, C
         holder.bind(getData().get(position));
     }
 
-    public void addOrUpdate(List<QiscusChatRoom> chatRooms) {
-        for (QiscusChatRoom chatRoom : chatRooms) {
+    public void addOrUpdate(List<QChatRoom> chatRooms) {
+        for (QChatRoom chatRoom : chatRooms) {
             int index = findPosition(chatRoom);
             if (index == -1) {
                 getData().add(chatRoom);
@@ -94,7 +96,7 @@ public class ChatRoomAdapter extends SortedRecyclerViewAdapter<QiscusChatRoom, C
             itemView.setOnClickListener(this);
         }
 
-        void bind(QiscusChatRoom chatRoom) {
+        void bind(QChatRoom chatRoom) {
             Nirmana.getInstance().get()
                     .setDefaultRequestOptions(new RequestOptions()
                             .placeholder(R.drawable.ic_qiscus_avatar)
@@ -103,21 +105,23 @@ public class ChatRoomAdapter extends SortedRecyclerViewAdapter<QiscusChatRoom, C
                     .load(chatRoom.getAvatarUrl())
                     .into(avatar);
             name.setText(chatRoom.getName());
-            QiscusComment lastComment = chatRoom.getLastComment();
+            QMessage lastComment = chatRoom.getLastMessage();
             if (lastComment != null && lastComment.getId() > 0) {
                 if (lastComment.getSender() != null) {
-                    String lastMessageText = lastComment.isMyComment() ? "You: " : lastComment.getSender().split(" ")[0] + ": ";
-                    lastMessageText += chatRoom.getLastComment().getType() == QiscusComment.Type.IMAGE
-                            ? "\uD83D\uDCF7 send an image" : lastComment.getMessage();
+                    String lastMessageText = lastComment.isMyComment(
+                            Const.qiscusCore().getQiscusAccount().getId()) ?
+                            "You: " : lastComment.getSender().getName().split(" ")[0] + ": ";
+                    lastMessageText += chatRoom.getLastMessage().getType() == QMessage.Type.IMAGE
+                            ? "\uD83D\uDCF7 send an image" : lastComment.getText();
                     lastMessage.setText(lastMessageText);
-                }else{
+                } else {
                     String lastMessageText = "";
-                    lastMessageText += chatRoom.getLastComment().getType() == QiscusComment.Type.IMAGE
-                            ? "\uD83D\uDCF7 send an image" : lastComment.getMessage();
+                    lastMessageText += chatRoom.getLastMessage().getType() == QMessage.Type.IMAGE
+                            ? "\uD83D\uDCF7 send an image" : lastComment.getText();
                     lastMessage.setText(lastMessageText);
                 }
 
-                tv_time.setText(DateUtil.getLastMessageTimestamp(lastComment.getTime()));
+                tv_time.setText(DateUtil.getLastMessageTimestamp(lastComment.getTimestamp()));
             } else {
                 lastMessage.setText("");
                 tv_time.setText("");

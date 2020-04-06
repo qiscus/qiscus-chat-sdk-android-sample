@@ -15,18 +15,30 @@ import com.qiscus.mychatui.data.source.impl.UserRepositoryImpl;
  */
 public class AppComponent {
     private final UserRepository userRepository;
+    private final UserRepository userRepositoryAppId2;
     private final ChatRoomRepository chatRoomRepository;
+    private final ChatRoomRepository chatRoomRepositoryAppId2;
 
     AppComponent(Context context) {
         userRepository = new UserRepositoryImpl(context);
+        userRepositoryAppId2 = new UserRepositoryImpl(context);
         chatRoomRepository = new ChatRoomRepositoryImpl();
+        chatRoomRepositoryAppId2 = new ChatRoomRepositoryImpl();
     }
 
     public UserRepository getUserRepository() {
         return userRepository;
     }
 
+    public UserRepository getUserRepositoryAppId2() {
+        return userRepositoryAppId2;
+    }
+
     public ChatRoomRepository getChatRoomRepository() {
         return chatRoomRepository;
+    }
+
+    public ChatRoomRepository getChatRoomRepositoryAppId2() {
+        return chatRoomRepositoryAppId2;
     }
 }

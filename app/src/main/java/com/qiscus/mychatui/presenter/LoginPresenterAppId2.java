@@ -15,48 +15,51 @@ import rx.schedulers.Schedulers;
  * Name       : Zetra
  * GitHub     : https://github.com/zetbaitsu
  */
-public class LoginPresenter {
+public class LoginPresenterAppId2 {
     private View view;
     private UserRepository userRepository;
 
-    public LoginPresenter(View view, UserRepository userRepository) {
+    public LoginPresenterAppId2(View view, UserRepository userRepository) {
         this.view = view;
         this.userRepository = userRepository;
     }
 
     public void start() {
-        userRepository.getCurrentUser(user -> {
-            if (user != null) {
-                view.showHomePage();
-            }
-        }, throwable -> view.showErrorMessage(throwable.getMessage()));
+        if (Const.qiscusCore2().hasSetupUser()) {
+            view.showHomePage();
+        }
     }
 
     public void login(String email, String password, String name) {
-//        loginAppId2();
+        loginAppId2(email, password, name);
         view.showLoading();
-        userRepository.login(email, password, name,
-                user -> {
-                    view.dismissLoading();
-                    view.showHomePage();
-                },
-                throwable -> {
-                    view.dismissLoading();
-                    view.showErrorMessage(throwable.getMessage());
-                });
+//        userRepository.login(email, password, name,
+//                user -> {
+//                    view.dismissLoading();
+//                    view.showHomePage();
+//                },
+//                throwable -> {
+//                    view.dismissLoading();
+//                    view.showErrorMessage(throwable.getMessage());
+//                });
     }
 
-    private void loginAppId2() {
+    private void loginAppId2(String email, String password, String name) {
         Const.qiscusCore2()
-                .setUser("w@mail.com", "12345678")
-                .withUsername("Warmonger")
+                .setUser(email, password)
+                .withUsername(name)
                 .withAvatarUrl(AvatarUtil.generateAvatar("Warmonger"))
                 .save()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(qiscusAccount -> {
-                    Toast.makeText(Const.qiscusCore2().getApps(), "Login AppId 2 Success As : " + qiscusAccount.getName(), Toast.LENGTH_LONG).show();
-                }, throwable -> Toast.makeText(Const.qiscusCore2().getApps(), "Login AppId 2 Failed : " + throwable, Toast.LENGTH_LONG).show());
+                    view.dismissLoading();
+                    view.showHomePage();
+//                    Toast.makeText(Const.qiscusCore2().getApps(), "Login AppId 2 Success As : " + qiscusAccount.getUsername(), Toast.LENGTH_LONG).show();
+                }, throwable -> {
+                    view.dismissLoading();
+                    view.showErrorMessage(throwable.getMessage());
+                });
     }
 
     public interface View {

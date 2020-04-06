@@ -9,19 +9,19 @@ import android.widget.EditText;
 import android.widget.ImageView;
 
 import com.qiscus.mychatui.R;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
-import com.qiscus.sdk.chat.core.data.remote.QiscusApi;
+import com.qiscus.mychatui.util.Const;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
 
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
 public class EditRoomNameActivity extends AppCompatActivity {
     private static final String CHAT_ROOM_KEY = "extra_chat_room";
-    private QiscusChatRoom chatRoom;
+    private QChatRoom chatRoom;
     ImageView bt_back, bt_save;
     EditText etName;
 
-    public static Intent generateIntent(Context context, QiscusChatRoom chatRoom) {
+    public static Intent generateIntent(Context context, QChatRoom chatRoom) {
         Intent intent = new Intent(context, EditRoomNameActivity.class);
         intent.putExtra(CHAT_ROOM_KEY, chatRoom);
         return intent;
@@ -65,7 +65,7 @@ public class EditRoomNameActivity extends AppCompatActivity {
                     return;
                 }
 
-                QiscusApi.getInstance().updateChatRoom(chatRoom.getId(), etName.getText().toString(), null,null)
+                Const.qiscusCore().getApi().updateChatRoom(chatRoom.getId(), etName.getText().toString(), null,null)
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(newChatroom -> {

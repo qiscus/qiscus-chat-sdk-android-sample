@@ -3,16 +3,18 @@ package com.qiscus.mychatui.ui;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.qiscus.mychatui.MyApplication;
 import com.qiscus.mychatui.R;
 import com.qiscus.mychatui.presenter.LoginPresenter;
+import com.qiscus.mychatui.presenter.LoginPresenterAppId2;
 import com.qiscus.mychatui.util.Const;
 
 /**
@@ -21,7 +23,7 @@ import com.qiscus.mychatui.util.Const;
  * Name       : Zetra
  * GitHub     : https://github.com/zetbaitsu
  */
-public class LoginActivity extends AppCompatActivity implements LoginPresenter.View {
+public class LoginActivityAppId2 extends AppCompatActivity implements LoginPresenterAppId2.View {
     private EditText displayName;
     private EditText userId;
     private EditText password;
@@ -40,8 +42,8 @@ public class LoginActivity extends AppCompatActivity implements LoginPresenter.V
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Please wait!");
 
-        LoginPresenter loginPresenter = new LoginPresenter(this,
-                MyApplication.getInstance().getComponent().getUserRepository());
+        LoginPresenterAppId2 loginPresenter = new LoginPresenterAppId2(this,
+                MyApplication.getInstance().getComponent().getUserRepositoryAppId2());
 
         loginPresenter.start();
 
@@ -62,13 +64,13 @@ public class LoginActivity extends AppCompatActivity implements LoginPresenter.V
             }
         });
 
-        Const.setQiscusCore(Const.qiscusCore1());
+        Const.setQiscusCore(Const.qiscusCore2());
     }
 
     @Override
     public void showHomePage() {
-        Const.setQiscusCore(Const.qiscusCore1());
-        startActivity(new Intent(this, HomeActivity.class));
+        Const.setQiscusCore(Const.qiscusCore2());
+        startActivity(StartChatWithActivity.generateIntent(this));
         finish();
     }
 

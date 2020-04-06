@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.text.Editable;
 import android.text.TextUtils;
@@ -37,14 +38,13 @@ import com.qiscus.mychatui.presenter.QiscusChatPresenter;
 import com.qiscus.mychatui.ui.QiscusSendPhotoConfirmationActivity;
 import com.qiscus.mychatui.ui.adapter.CommentsAdapter;
 import com.qiscus.mychatui.ui.view.QiscusChatScrollListener;
+import com.qiscus.mychatui.ui.view.QiscusCustomEditText;
+import com.qiscus.mychatui.util.Const;
 import com.qiscus.mychatui.util.QiscusImageUtil;
 import com.qiscus.mychatui.util.QiscusPermissionsUtil;
-import com.qiscus.sdk.chat.core.QiscusCore;
-import com.qiscus.sdk.chat.core.data.local.QiscusCacheManager;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
-import com.qiscus.sdk.chat.core.data.model.QiscusComment;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
+import com.qiscus.sdk.chat.core.data.model.QMessage;
 import com.qiscus.sdk.chat.core.data.model.QiscusPhoto;
-import com.qiscus.sdk.chat.core.data.remote.QiscusPusherApi;
 import com.qiscus.sdk.chat.core.util.QiscusFileUtil;
 
 import java.io.File;
@@ -85,7 +85,7 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
             "android.permission.WRITE_EXTERNAL_STORAGE",
             "android.permission.READ_EXTERNAL_STORAGE",
     };
-    private EditText messageField;
+    private QiscusCustomEditText messageField;
     private ImageView sendButton;
     private ImageView attachImageButton;
     private ProgressBar progressBar;
@@ -94,14 +94,17 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
     private LinearLayout emptyChat, linAttachment, linTakePhoto, linImageGallery, linFileDocument, linCancel;
 
     private QiscusChatPresenter chatPresenter;
+    long afterTextChangedDelay = 3000;
+    Handler handler = new Handler();
+    private Runnable input_finish_checker;
 
-    private QiscusChatRoom chatRoom;
+    private QChatRoom chatRoom;
 
     private UserTypingListener userTypingListener;
     private boolean typing;
     private Runnable stopTypingNotifyTask;
 
-    public static ChatRoomFragment newInstance(QiscusChatRoom chatRoom) {
+    public static ChatRoomFragment newInstance(QChatRoom chatRoom) {
         ChatRoomFragment chatRoomFragment = new ChatRoomFragment();
         Bundle bundle = new Bundle();
         bundle.putParcelable(CHAT_ROOM_KEY, chatRoom);
@@ -134,6 +137,11 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
         super.onActivityCreated(savedInstanceState);
 
         chatRoom = getArguments().getParcelable(CHAT_ROOM_KEY);
+
+        input_finish_checker = () -> {
+            Const.qiscusCore().getPusherApi().publishTyping(chatRoom.getId(),false);
+        };
+
         if (chatRoom == null) {
             throw new RuntimeException("Please provide chat room");
         }
@@ -143,21 +151,29 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
             notifyServerTyping(false);
         };
 
+        messageField.setOnKeyboardListener((keyboardEditText, showing) -> {
+            if (!showing) {
+                notifyServerTyping(false);
+            }
+        });
+
         messageField.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
                 typing = true;
                 notifyServerTyping(true);
             }
 
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
-
-            @Override
             public void afterTextChanged(Editable s) {
+                handler.removeCallbacks(input_finish_checker);
 
+                handler.postDelayed(input_finish_checker, afterTextChangedDelay);
             }
         });
 
@@ -196,7 +212,7 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
                                 intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
                             } else {
                                 intent.putExtra(MediaStore.EXTRA_OUTPUT,
-                                        FileProvider.getUriForFile(getActivity(), QiscusCore.getApps().getPackageName() + ".qiscus.sdk.provider", photoFile));
+                                        FileProvider.getUriForFile(getActivity(), Const.qiscusCore().getApps().getPackageName() + ".qiscus.sdk.provider", photoFile));
                             }
                             startActivityForResult(intent, TAKE_PICTURE_REQUEST);
                         }
@@ -303,7 +319,7 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
     }
 
     private void notifyServerTyping(boolean typing) {
-        QiscusPusherApi.getInstance().publishTyping(chatRoom.getId(), typing);
+        Const.qiscusCore().getPusherApi().publishTyping(chatRoom.getId(), typing);
     }
 
     private void pickImage() {
@@ -323,14 +339,14 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
     @Override
     public void onResume() {
         super.onResume();
-        QiscusCacheManager.getInstance().setLastChatActivity(true, chatRoom.getId());
+        Const.qiscusCore().getCacheManager().setLastChatActivity(true, chatRoom.getId());
         notifyLatestRead();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        QiscusCacheManager.getInstance().setLastChatActivity(false, chatRoom.getId());
+        Const.qiscusCore().getCacheManager().setLastChatActivity(false, chatRoom.getId());
     }
 
     @Override
@@ -339,7 +355,7 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
     }
 
     @Override
-    public void initRoomData(QiscusChatRoom chatRoom, List<QiscusComment> comments) {
+    public void initRoomData(QChatRoom chatRoom, List<QMessage> comments) {
         this.chatRoom = chatRoom;
         commentsAdapter.addOrUpdate(comments);
 
@@ -354,22 +370,22 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
     }
 
     @Override
-    public void onRoomChanged(QiscusChatRoom chatRoom) {
+    public void onRoomChanged(QChatRoom chatRoom) {
         this.chatRoom = chatRoom;
     }
 
     @Override
-    public void showComments(List<QiscusComment> comments) {
+    public void showComments(List<QMessage> comments) {
         commentsAdapter.addOrUpdate(comments);
     }
 
     @Override
-    public void onLoadMore(List<QiscusComment> comments) {
+    public void onLoadMore(List<QMessage> comments) {
         commentsAdapter.addOrUpdate(comments);
     }
 
     @Override
-    public void onSendingComment(QiscusComment comment) {
+    public void onSendingComment(QMessage comment) {
         commentsAdapter.addOrUpdate(comment);
         recyclerView.smoothScrollToPosition(0);
         if (emptyChat.isShown()) {
@@ -379,17 +395,17 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
     }
 
     @Override
-    public void onSuccessSendComment(QiscusComment comment) {
+    public void onSuccessSendComment(QMessage comment) {
         commentsAdapter.addOrUpdate(comment);
     }
 
     @Override
-    public void onFailedSendComment(QiscusComment comment) {
+    public void onFailedSendComment(QMessage comment) {
         commentsAdapter.addOrUpdate(comment);
     }
 
     @Override
-    public void onNewComment(QiscusComment comment) {
+    public void onNewComment(QMessage comment) {
         commentsAdapter.addOrUpdate(comment);
         if (((LinearLayoutManager) recyclerView.getLayoutManager()).findFirstVisibleItemPosition() <= 2) {
             recyclerView.smoothScrollToPosition(0);
@@ -402,12 +418,12 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
     }
 
     @Override
-    public void onCommentDeleted(QiscusComment comment) {
+    public void onCommentDeleted(QMessage comment) {
         commentsAdapter.remove(comment);
     }
 
     @Override
-    public void refreshComment(QiscusComment comment) {
+    public void refreshComment(QMessage comment) {
         commentsAdapter.addOrUpdate(comment);
     }
 
@@ -427,7 +443,7 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
     }
 
     @Override
-    public void startPhotoViewer(QiscusComment qiscusComment) {
+    public void startPhotoViewer(QMessage qiscusComment) {
 
     }
 
@@ -439,14 +455,14 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
     }
 
     @Override
-    public void showCommentsAndScrollToTop(List<QiscusComment> qiscusComments) {
+    public void showCommentsAndScrollToTop(List<QMessage> qiscusComments) {
 
     }
 
     @Override
     public void onRealtimeStatusChanged(boolean connected) {
         if (connected) {
-            QiscusComment comment = commentsAdapter.getLatestSentComment();
+            QMessage comment = commentsAdapter.getLatestSentComment();
             if (comment != null) {
                 chatPresenter.loadCommentsAfter(comment);
             }
@@ -530,7 +546,7 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
             }
         } else if (requestCode == TAKE_PICTURE_REQUEST && resultCode == Activity.RESULT_OK) {
             try {
-                File imageFile = QiscusFileUtil.from(Uri.parse(QiscusCacheManager.getInstance().getLastImagePath()));
+                File imageFile = QiscusFileUtil.from(Uri.parse(Const.qiscusCore().getCacheManager().getLastImagePath()));
                 List<QiscusPhoto> qiscusPhotos = new ArrayList<>();
                 qiscusPhotos.add(new QiscusPhoto(imageFile));
                 startActivityForResult(QiscusSendPhotoConfirmationActivity.generateIntent(getActivity(),
@@ -600,17 +616,17 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
 
     private void loadMoreComments() {
         if (progressBar.getVisibility() == View.GONE && commentsAdapter.getItemCount() > 0) {
-            QiscusComment comment = commentsAdapter.getData().get(commentsAdapter.getItemCount() - 1);
-            if (comment.getId() == -1 || comment.getCommentBeforeId() > 0) {
+            QMessage comment = commentsAdapter.getData().get(commentsAdapter.getItemCount() - 1);
+            if (comment.getId() == -1 || comment.getPreviousMessageId() > 0) {
                 chatPresenter.loadOlderCommentThan(comment);
             }
         }
     }
 
     private void notifyLatestRead() {
-        QiscusComment comment = commentsAdapter.getLatestSentComment();
+        QMessage comment = commentsAdapter.getLatestSentComment();
         if (comment != null) {
-            QiscusPusherApi.getInstance()
+            Const.qiscusCore().getPusherApi()
                     .markAsRead(chatRoom.getId(), comment.getId());
         }
     }

@@ -4,9 +4,8 @@ import com.qiscus.mychatui.data.model.User;
 import com.qiscus.mychatui.data.source.ChatRoomRepository;
 import com.qiscus.mychatui.util.Action;
 import com.qiscus.mychatui.util.AvatarUtil;
-import com.qiscus.sdk.chat.core.QiscusCore;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
-import com.qiscus.sdk.chat.core.data.remote.QiscusApi;
+import com.qiscus.mychatui.util.Const;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,19 +23,19 @@ import rx.schedulers.Schedulers;
 public class ChatRoomRepositoryImpl implements ChatRoomRepository {
 
     @Override
-    public void getChatRooms(Action<List<QiscusChatRoom>> onSuccess, Action<Throwable> onError) {
-        Observable.from(QiscusCore.getDataStore().getChatRooms(100))
-                .filter(chatRoom -> chatRoom.getLastComment() != null)
+    public void getChatRooms(Action<List<QChatRoom>> onSuccess, Action<Throwable> onError) {
+        Observable.from(Const.qiscusCore().getDataStore().getChatRooms(100))
+                .filter(chatRoom -> chatRoom.getLastMessage() != null)
                 .toList()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(onSuccess::call, onError::call);
 
-        QiscusApi.getInstance()
+        Const.qiscusCore().getApi()
                 .getAllChatRooms(true, false, true, 1, 100)
                 .flatMap(Observable::from)
-                .doOnNext(qiscusChatRoom -> QiscusCore.getDataStore().addOrUpdate(qiscusChatRoom))
-                .filter(chatRoom -> chatRoom.getLastComment().getId() != 0)
+                .doOnNext(qiscusChatRoom -> Const.qiscusCore().getDataStore().addOrUpdate(qiscusChatRoom))
+                .filter(chatRoom -> chatRoom.getLastMessage().getId() != 0)
                 .toList()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -44,31 +43,31 @@ public class ChatRoomRepositoryImpl implements ChatRoomRepository {
     }
 
     @Override
-    public void createChatRoom(User user, Action<QiscusChatRoom> onSuccess, Action<Throwable> onError) {
-        QiscusChatRoom savedChatRoom = QiscusCore.getDataStore().getChatRoom(user.getId());
+    public void createChatRoom(User user, Action<QChatRoom> onSuccess, Action<Throwable> onError) {
+        QChatRoom savedChatRoom = Const.qiscusCore().getDataStore().getChatRoom(user.getId());
         if (savedChatRoom != null) {
             onSuccess.call(savedChatRoom);
             return;
         }
 
-        QiscusApi.getInstance()
+        Const.qiscusCore().getApi()
                 .chatUser(user.getId(), null)
-                .doOnNext(chatRoom -> QiscusCore.getDataStore().addOrUpdate(chatRoom))
+                .doOnNext(chatRoom -> Const.qiscusCore().getDataStore().addOrUpdate(chatRoom))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(onSuccess::call, onError::call);
     }
 
     @Override
-    public void createGroupChatRoom(String name, List<User> members, Action<QiscusChatRoom> onSuccess, Action<Throwable> onError) {
+    public void createGroupChatRoom(String name, List<User> members, Action<QChatRoom> onSuccess, Action<Throwable> onError) {
         List<String> ids = new ArrayList<>();
         for (User member : members) {
             ids.add(member.getId());
         }
 
-        QiscusApi.getInstance()
+        Const.qiscusCore().getApi()
                 .createGroupChat(name, ids, AvatarUtil.generateAvatar(name), null)
-                .doOnNext(chatRoom -> QiscusCore.getDataStore().addOrUpdate(chatRoom))
+                .doOnNext(chatRoom -> Const.qiscusCore().getDataStore().addOrUpdate(chatRoom))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(onSuccess::call, onError::call);
@@ -80,8 +79,8 @@ public class ChatRoomRepositoryImpl implements ChatRoomRepository {
         for (User member : members) {
             ids.add(member.getId());
         }
-        QiscusApi.getInstance().addParticipants(roomId, ids)
-                .doOnNext(chatRoom -> QiscusCore.getDataStore().addOrUpdate(chatRoom))
+        Const.qiscusCore().getApi().addParticipants(roomId, ids)
+                .doOnNext(chatRoom -> Const.qiscusCore().getDataStore().addOrUpdate(chatRoom))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(chatRoom -> onSuccess.call(null), onError::call);
@@ -93,8 +92,8 @@ public class ChatRoomRepositoryImpl implements ChatRoomRepository {
         for (User member : members) {
             ids.add(member.getId());
         }
-        QiscusApi.getInstance().addParticipants(roomId, ids)
-                .doOnNext(chatRoom -> QiscusCore.getDataStore().addOrUpdate(chatRoom))
+        Const.qiscusCore().getApi().addParticipants(roomId, ids)
+                .doOnNext(chatRoom -> Const.qiscusCore().getDataStore().addOrUpdate(chatRoom))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(chatRoom -> onSuccess.call(null), onError::call);

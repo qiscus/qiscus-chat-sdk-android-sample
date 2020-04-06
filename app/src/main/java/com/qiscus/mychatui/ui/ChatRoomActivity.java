@@ -3,6 +3,7 @@ package com.qiscus.mychatui.ui;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -14,11 +15,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.request.RequestOptions;
 import com.qiscus.mychatui.R;
 import com.qiscus.mychatui.ui.fragment.ChatRoomFragment;
+import com.qiscus.mychatui.util.Const;
 import com.qiscus.nirmana.Nirmana;
-import com.qiscus.sdk.chat.core.QiscusCore;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
-import com.qiscus.sdk.chat.core.data.model.QiscusRoomMember;
-import com.qiscus.sdk.chat.core.data.remote.QiscusPusherApi;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
+import com.qiscus.sdk.chat.core.data.model.QParticipant;
 import com.qiscus.sdk.chat.core.event.QiscusUserStatusEvent;
 import com.qiscus.sdk.chat.core.util.QiscusDateUtil;
 
@@ -37,11 +37,11 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatRoomFragm
     private static final String CHAT_ROOM_KEY = "extra_chat_room";
 
     private TextView tvSubtitle;
-    private QiscusChatRoom chatRoom;
+    private QChatRoom chatRoom;
     private String opponentEmail;
     private LinearLayout linTitleSubtitle;
 
-    public static Intent generateIntent(Context context, QiscusChatRoom chatRoom) {
+    public static Intent generateIntent(Context context, QChatRoom chatRoom) {
         Intent intent = new Intent(context, ChatRoomActivity.class);
         intent.putExtra(CHAT_ROOM_KEY, chatRoom);
         return intent;
@@ -92,10 +92,10 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatRoomFragm
     }
 
     private void getOpponentIfNotGroupEmail() {
-        if (!chatRoom.isGroup()) {
-            opponentEmail = Observable.from(chatRoom.getMember())
-                    .map(QiscusRoomMember::getEmail)
-                    .filter(email -> !email.equals(QiscusCore.getQiscusAccount().getEmail()))
+        if (!chatRoom.getType().equals("group")) {
+            opponentEmail = Observable.from(chatRoom.getParticipants())
+                    .map(QParticipant::getId)
+                    .filter(email -> !email.equals(Const.qiscusCore().getQiscusAccount().getId()))
                     .first()
                     .toBlocking()
                     .single();
@@ -109,14 +109,14 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatRoomFragm
     }
 
     private void listenUser() {
-        if (!chatRoom.isGroup() && opponentEmail != null) {
-            QiscusPusherApi.getInstance().subscribeUserOnlinePresence(opponentEmail);
+        if (!chatRoom.getType().equals("group") && opponentEmail != null) {
+            Const.qiscusCore().getPusherApi().subscribeUserOnlinePresence(opponentEmail);
         }
     }
 
     private void unlistenUser() {
-        if (!chatRoom.isGroup() && opponentEmail != null) {
-            QiscusPusherApi.getInstance().unsubscribeUserOnlinePresence(opponentEmail);
+        if (!chatRoom.getType().equals("group") && opponentEmail != null) {
+            Const.qiscusCore().getPusherApi().unsubscribeUserOnlinePresence(opponentEmail);
         }
     }
 

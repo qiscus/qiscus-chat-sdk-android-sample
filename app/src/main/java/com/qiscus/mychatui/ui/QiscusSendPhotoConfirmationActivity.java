@@ -46,7 +46,7 @@ import com.qiscus.mychatui.ui.adapter.OnItemClickListener;
 import com.qiscus.mychatui.ui.adapter.QiscusPhotoAdapter;
 import com.qiscus.mychatui.ui.adapter.QiscusPhotoPagerAdapter;
 import com.qiscus.mychatui.ui.fragment.QiscusPhotoFragment;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
 import com.qiscus.sdk.chat.core.data.model.QiscusPhoto;
 import com.trello.rxlifecycle.components.support.RxAppCompatActivity;
 
@@ -70,7 +70,7 @@ public class QiscusSendPhotoConfirmationActivity extends RxAppCompatActivity imp
     private EditText messageEditText;
 
     private ViewPager viewPager;
-    private QiscusChatRoom qiscusChatRoom;
+    private QChatRoom qiscusChatRoom;
     private List<QiscusPhoto> qiscusPhotos;
     private Map<String, String> captions;
     private int position = -1;
@@ -78,7 +78,7 @@ public class QiscusSendPhotoConfirmationActivity extends RxAppCompatActivity imp
     private RecyclerView recyclerView;
     private QiscusPhotoAdapter photoAdapter;
 
-    public static Intent generateIntent(Context context, QiscusChatRoom room, List<QiscusPhoto> qiscusPhotos) {
+    public static Intent generateIntent(Context context, QChatRoom room, List<QiscusPhoto> qiscusPhotos) {
         Intent intent = new Intent(context, QiscusSendPhotoConfirmationActivity.class);
         intent.putExtra(EXTRA_ROOM, room);
         intent.putParcelableArrayListExtra(EXTRA_QISCUS_PHOTOS, (ArrayList<QiscusPhoto>) qiscusPhotos);

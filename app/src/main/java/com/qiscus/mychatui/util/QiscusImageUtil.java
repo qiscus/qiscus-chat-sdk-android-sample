@@ -69,8 +69,8 @@ public final class QiscusImageUtil {
         }
 
         //max Height and width values of the compressed image is taken as 1440x900
-        float maxHeight = QiscusCore.getChatConfig().getQiscusImageCompressionConfig().getMaxHeight();
-        float maxWidth = QiscusCore.getChatConfig().getQiscusImageCompressionConfig().getMaxWidth();
+        float maxHeight = Const.qiscusCore().getChatConfig().getQiscusImageCompressionConfig().getMaxHeight();
+        float maxWidth = Const.qiscusCore().getChatConfig().getQiscusImageCompressionConfig().getMaxWidth();
         float imgRatio = actualWidth / actualHeight;
         float maxRatio = maxWidth / maxHeight;
 
@@ -160,7 +160,7 @@ public final class QiscusImageUtil {
 
             //write the compressed bitmap at the destination specified by filename.
             QiscusImageUtil.getScaledBitmap(Uri.fromFile(imageFile)).compress(Bitmap.CompressFormat.JPEG,
-                    QiscusCore.getChatConfig().getQiscusImageCompressionConfig().getQuality(), out);
+                    Const.qiscusCore().getChatConfig().getQiscusImageCompressionConfig().getQuality(), out);
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -212,7 +212,7 @@ public final class QiscusImageUtil {
     public static void showImageFolderAppInGallery() {
         File nomedia = new File(Environment.getExternalStorageDirectory().getPath(),
                 QiscusFileUtil.IMAGE_PATH + File.separator +
-                        QiscusCore.getApps().getString(com.qiscus.sdk.chat.core.R.string.qiscus_nomedia));
+                        Const.qiscusCore().getApps().getString(com.qiscus.sdk.chat.core.R.string.qiscus_nomedia));
         if (nomedia.exists()) {
             nomedia.delete();
             //rescan media gallery for updating deleted .nomedia file
@@ -223,7 +223,7 @@ public final class QiscusImageUtil {
     public static void hideImageFolderAppInGallery() {
         File nomedia = new File(Environment.getExternalStorageDirectory().getPath(),
                 QiscusFileUtil.IMAGE_PATH + File.separator +
-                        QiscusCore.getApps().getString(com.qiscus.sdk.chat.core.R.string.qiscus_nomedia));
+                        Const.qiscusCore().getApps().getString(com.qiscus.sdk.chat.core.R.string.qiscus_nomedia));
 
         if (!nomedia.getParentFile().exists()) {
             nomedia.getParentFile().mkdirs();
@@ -245,7 +245,7 @@ public final class QiscusImageUtil {
         String imageFileName = "JPEG-" + timeStamp + "-";
         File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(imageFileName, ".jpg", storageDir);
-        QiscusCacheManager.getInstance().cacheLastImagePath("file:" + image.getAbsolutePath());
+        Const.qiscusCore().getCacheManager().cacheLastImagePath("file:" + image.getAbsolutePath());
         return image;
     }
 

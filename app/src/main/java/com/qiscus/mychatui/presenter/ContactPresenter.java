@@ -3,7 +3,7 @@ package com.qiscus.mychatui.presenter;
 import com.qiscus.mychatui.data.model.User;
 import com.qiscus.mychatui.data.source.ChatRoomRepository;
 import com.qiscus.mychatui.data.source.UserRepository;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
 
 import java.util.List;
 
@@ -57,7 +57,7 @@ public class ContactPresenter {
     public interface View {
         void showContacts(List<User> contacts);
 
-        void showChatRoomPage(QiscusChatRoom chatRoom);
+        void showChatRoomPage(QChatRoom chatRoom);
 
         void showErrorMessage(String errorMessage);
     }

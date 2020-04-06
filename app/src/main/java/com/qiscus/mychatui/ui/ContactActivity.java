@@ -18,7 +18,7 @@ import com.qiscus.mychatui.presenter.ContactPresenter;
 import com.qiscus.mychatui.ui.adapter.ContactAdapter;
 import com.qiscus.mychatui.ui.adapter.OnItemClickListener;
 import com.qiscus.mychatui.ui.groupchatcreation.GroupChatCreationActivity;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
 
 import java.util.List;
 
@@ -56,6 +56,7 @@ public class ContactActivity extends AppCompatActivity implements ContactPresent
         contactPresenter = new ContactPresenter(this,
                 MyApplication.getInstance().getComponent().getUserRepository(),
                 MyApplication.getInstance().getComponent().getChatRoomRepository());
+
         contactPresenter.loadContacts(1,100, "");
 
         llCreateGroupChat.setOnClickListener(new View.OnClickListener() {
@@ -91,7 +92,7 @@ public class ContactActivity extends AppCompatActivity implements ContactPresent
     }
 
     @Override
-    public void showChatRoomPage(QiscusChatRoom chatRoom) {
+    public void showChatRoomPage(QChatRoom chatRoom) {
         startActivity(ChatRoomActivity.generateIntent(this, chatRoom));
     }
 

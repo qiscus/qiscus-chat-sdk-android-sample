@@ -16,6 +16,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
+        <activity android:name=".ui.LoginActivityAppId2" />
+        <activity android:name=".ui.StartChatWithActivity" />
         <activity android:name=".ui.EditRoomNameActivity" />
         <activity android:name=".ui.RoomInfoActivity" />
         <activity android:name=".ui.EditNameActivity" />

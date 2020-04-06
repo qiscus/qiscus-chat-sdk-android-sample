@@ -22,8 +22,9 @@ import com.qiscus.mychatui.data.model.User;
 
 import com.qiscus.mychatui.ui.groupchatcreation.ContactAdapter;
 import com.qiscus.mychatui.ui.groupchatcreation.SelectableUser;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
-import com.qiscus.sdk.chat.core.data.model.QiscusRoomMember;
+import com.qiscus.mychatui.util.Const;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
+import com.qiscus.sdk.chat.core.data.model.QParticipant;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +37,7 @@ import java.util.List;
  */
 public class AddGroupMemberActivity extends AppCompatActivity implements AddGroupMemberPresenter.View {
     protected static final String CHAT_ROOM_DATA = "chat_room_data";
-    protected QiscusChatRoom qiscusChatRoom;
+    protected QChatRoom qiscusChatRoom;
 
     private ProgressDialog progressDialog;
 
@@ -45,7 +46,7 @@ public class AddGroupMemberActivity extends AppCompatActivity implements AddGrou
     private ContactAdapter contactAdapter;
     private SearchView searchView;
 
-    public static Intent generateIntent(Context context, QiscusChatRoom qiscusChatRoom) {
+    public static Intent generateIntent(Context context, QChatRoom qiscusChatRoom) {
         Intent intent = new Intent(context, AddGroupMemberActivity.class);
         intent.putExtra(CHAT_ROOM_DATA, qiscusChatRoom);
         return intent;
@@ -79,8 +80,13 @@ public class AddGroupMemberActivity extends AppCompatActivity implements AddGrou
         contactRecyclerView.setAdapter(contactAdapter);
 
         AppComponent appComponent = MyApplication.getInstance().getComponent();
-        presenter = new AddGroupMemberPresenter(this, appComponent.getUserRepository(),
-                appComponent.getChatRoomRepository(), qiscusChatRoom.getMember());
+        if (Const.qiscusCore() == Const.qiscusCore1()) {
+            presenter = new AddGroupMemberPresenter(this, appComponent.getUserRepository(),
+                    appComponent.getChatRoomRepository(), qiscusChatRoom.getParticipants());
+        } else {
+            presenter = new AddGroupMemberPresenter(this, appComponent.getUserRepositoryAppId2(),
+                    appComponent.getChatRoomRepositoryAppId2(), qiscusChatRoom.getParticipants());
+        }
         presenter.loadContacts(1, 100, "");
 
         imgNext.setOnClickListener(new View.OnClickListener() {
@@ -143,12 +149,12 @@ public class AddGroupMemberActivity extends AppCompatActivity implements AddGrou
 
     @Override
     public void onParticipantAdded(List<User> users) {
-        QiscusRoomMember member = new QiscusRoomMember();
+        QParticipant member = new QParticipant();
         for (User user : users) {
-            member.setEmail(user.getId());
-            member.setAvatar(user.getAvatarUrl());
-            member.setUsername(user.getName());
-            qiscusChatRoom.getMember().add(member);
+            member.setId(user.getId());
+            member.setAvatarUrl(user.getAvatarUrl());
+            member.setName(user.getName());
+            qiscusChatRoom.getParticipants().add(member);
         }
 
         Intent data = new Intent();

@@ -3,7 +3,6 @@ package com.qiscus.mychatui.data.source.impl;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
-import android.util.Log;
 
 import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
@@ -14,9 +13,9 @@ import com.qiscus.mychatui.data.model.User;
 import com.qiscus.mychatui.data.source.UserRepository;
 import com.qiscus.mychatui.util.Action;
 import com.qiscus.mychatui.util.AvatarUtil;
-import com.qiscus.sdk.chat.core.QiscusCore;
-import com.qiscus.sdk.chat.core.data.model.QiscusAccount;
-import com.qiscus.sdk.chat.core.data.remote.QiscusApi;
+import com.qiscus.mychatui.util.Const;
+import com.qiscus.sdk.chat.core.data.model.QAccount;
+import com.qiscus.sdk.chat.core.data.model.QUser;
 
 import org.json.JSONException;
 
@@ -49,7 +48,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public void login(String email, String password, String name, Action<User> onSuccess, Action<Throwable> onError) {
-        QiscusCore.setUser(email, password)
+        Const.qiscusCore().setUser(email, password)
                 .withUsername(name)
                 .withAvatarUrl(AvatarUtil.generateAvatar(name))
                 .save()
@@ -70,11 +69,11 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public void getUsers(long page, int limit, String searchUsername, Action<List<User>> onSuccess, Action<Throwable> onError) {
-        QiscusApi.getInstance().getUsers(searchUsername, page, limit)
+        Const.qiscusCore().getApi().getUsers(searchUsername, page, limit)
                 .flatMap(Observable::from)
                 .filter(user -> !user.equals(getCurrentUser()))
-                .filter(user -> !user.getUsername().equals(""))
-                .map(this::mapFromQiscusAccount)
+                .filter(user -> !user.getName().equals(""))
+                .map(this::mapFromQiscusUser)
                 .toList()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -84,7 +83,7 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public void updateProfile(String name, Action<User> onSuccess, Action<Throwable> onError) {
-        QiscusCore.updateUserAsObservable(name, getCurrentUser().getAvatarUrl())
+        Const.qiscusCore().updateUserAsObservable(name, getCurrentUser().getAvatarUrl())
                 .map(this::mapFromQiscusAccount)
                 .doOnNext(this::setCurrentUser)
                 .subscribeOn(Schedulers.io())
@@ -94,8 +93,10 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public void logout() {
-        QiscusCore.removeDeviceToken(getCurrentDeviceToken());
-        QiscusCore.clearUser();
+        Const.qiscusCore1().removeDeviceToken(getCurrentDeviceToken());
+        Const.qiscusCore2().removeDeviceToken(getCurrentDeviceToken());
+        Const.qiscusCore1().clearUser();
+        Const.qiscusCore2().clearUser();
         sharedPreferences.edit().clear().apply();
     }
 
@@ -159,11 +160,19 @@ public class UserRepositoryImpl implements UserRepository {
         return new String(bytes);
     }
 
-    private User mapFromQiscusAccount(QiscusAccount qiscusAccount) {
+    private User mapFromQiscusAccount(QAccount qiscusAccount) {
         User user = new User();
-        user.setId(qiscusAccount.getEmail());
-        user.setName(qiscusAccount.getUsername());
-        user.setAvatarUrl(qiscusAccount.getAvatar());
+        user.setId(qiscusAccount.getId());
+        user.setName(qiscusAccount.getName());
+        user.setAvatarUrl(qiscusAccount.getAvatarUrl());
+        return user;
+    }
+
+    private User mapFromQiscusUser(QUser qUser) {
+        User user = new User();
+        user.setId(qUser.getId());
+        user.setName(qUser.getName());
+        user.setAvatarUrl(qUser.getAvatarUrl());
         return user;
     }
 }

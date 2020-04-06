@@ -11,7 +11,7 @@ import android.widget.TextView;
 import com.bumptech.glide.request.RequestOptions;
 import com.qiscus.mychatui.R;
 import com.qiscus.nirmana.Nirmana;
-import com.qiscus.sdk.chat.core.data.model.QiscusRoomMember;
+import com.qiscus.sdk.chat.core.data.model.QParticipant;
 
 import java.util.List;
 
@@ -20,7 +20,7 @@ import java.util.List;
  * Author     : arief nur putranto
  * Name       : arief
  */
-public class ParticipantsRoomInfoAdapter extends SortedRecyclerViewAdapter<QiscusRoomMember, ParticipantsRoomInfoAdapter.VHh> {
+public class ParticipantsRoomInfoAdapter extends SortedRecyclerViewAdapter<QParticipant, ParticipantsRoomInfoAdapter.VHh> {
 
     private Context context;
     private OnItemClickListener onItemClickListener;
@@ -30,13 +30,13 @@ public class ParticipantsRoomInfoAdapter extends SortedRecyclerViewAdapter<Qiscu
     }
 
     @Override
-    protected Class<QiscusRoomMember> getItemClass() {
-        return QiscusRoomMember.class;
+    protected Class<QParticipant> getItemClass() {
+        return QParticipant.class;
     }
 
     @Override
-    protected int compare(QiscusRoomMember item1, QiscusRoomMember item2) {
-        return item2.getEmail().compareTo(item1.getEmail());
+    protected int compare(QParticipant item1, QParticipant item2) {
+        return item2.getId().compareTo(item1.getId());
     }
 
     @Override
@@ -50,8 +50,8 @@ public class ParticipantsRoomInfoAdapter extends SortedRecyclerViewAdapter<Qiscu
         holder.bind(getData().get(position));
     }
 
-    public void addOrUpdate(List<QiscusRoomMember> participants) {
-        for (QiscusRoomMember participant : participants) {
+    public void addOrUpdate(List<QParticipant> participants) {
+        for (QParticipant participant : participants) {
             int index = findPosition(participant);
             if (index == -1) {
                 getData().add(participant);
@@ -88,15 +88,15 @@ public class ParticipantsRoomInfoAdapter extends SortedRecyclerViewAdapter<Qiscu
             itemView.setOnClickListener(this);
         }
 
-        void bind(QiscusRoomMember participant) {
+        void bind(QParticipant participant) {
             Nirmana.getInstance().get()
                     .setDefaultRequestOptions(new RequestOptions()
                             .placeholder(R.drawable.ic_qiscus_avatar)
                             .error(R.drawable.ic_qiscus_avatar)
                             .dontAnimate())
-                    .load(participant.getAvatar())
+                    .load(participant.getAvatarUrl())
                     .into(avatar);
-            name.setText(participant.getUsername());
+            name.setText(participant.getName());
 
             ivRemove.setOnClickListener(new View.OnClickListener() {
                 @Override

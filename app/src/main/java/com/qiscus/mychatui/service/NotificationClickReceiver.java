@@ -7,10 +7,9 @@ import android.widget.Toast;
 
 import com.qiscus.mychatui.ui.ChatRoomActivity;
 import com.qiscus.mychatui.ui.GroupChatRoomActivity;
-import com.qiscus.sdk.chat.core.QiscusCore;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
-import com.qiscus.sdk.chat.core.data.model.QiscusComment;
-import com.qiscus.sdk.chat.core.data.remote.QiscusApi;
+import com.qiscus.mychatui.util.Const;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
+import com.qiscus.sdk.chat.core.data.model.QMessage;
 
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
@@ -23,19 +22,25 @@ public class NotificationClickReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        QiscusComment qiscusComment = intent.getParcelableExtra("data");
-        QiscusApi.getInstance()
-                .getChatRoom(qiscusComment.getRoomId())
+        QMessage qiscusComment = intent.getParcelableExtra("data");
+
+        if (qiscusComment.getAppId().equals(Const.qiscusCore1().getAppId())) {
+            Const.setQiscusCore(Const.qiscusCore1());
+        } else {
+            Const.setQiscusCore(Const.qiscusCore2());
+        }
+        Const.qiscusCore().getApi()
+                .getChatRoomInfo(qiscusComment.getChatRoomId())
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
-                .doOnNext(qiscusChatRoom -> QiscusCore.getDataStore().addOrUpdate(qiscusChatRoom))
+                .doOnNext(qiscusChatRoom -> Const.qiscusCore().getDataStore().addOrUpdate(qiscusChatRoom))
                 .map(qiscusChatRoom -> getChatRoomActivity(context, qiscusChatRoom))
                 .subscribe(newIntent -> start(context, newIntent), throwable ->
                         Toast.makeText(context, throwable.getLocalizedMessage(), Toast.LENGTH_SHORT).show());
     }
 
-    private Intent getChatRoomActivity(Context context, QiscusChatRoom qiscusChatRoom) {
-        return qiscusChatRoom.isGroup() ? GroupChatRoomActivity.generateIntent(context, qiscusChatRoom) :
+    private Intent getChatRoomActivity(Context context, QChatRoom qiscusChatRoom) {
+        return qiscusChatRoom.getType().equals("group") ? GroupChatRoomActivity.generateIntent(context, qiscusChatRoom) :
                 ChatRoomActivity.generateIntent(context, qiscusChatRoom);
     }
 

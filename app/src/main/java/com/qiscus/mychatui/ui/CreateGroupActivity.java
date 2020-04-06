@@ -14,7 +14,8 @@ import com.qiscus.mychatui.MyApplication;
 import com.qiscus.mychatui.R;
 import com.qiscus.mychatui.data.model.User;
 import com.qiscus.mychatui.presenter.CreateGroupPresenter;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
+import com.qiscus.mychatui.util.Const;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,8 +52,15 @@ public class CreateGroupActivity extends AppCompatActivity implements CreateGrou
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Please wait!");
 
-        CreateGroupPresenter createGroupPresenter = new CreateGroupPresenter(this,
-                MyApplication.getInstance().getComponent().getChatRoomRepository());
+        CreateGroupPresenter createGroupPresenter;
+
+        if (Const.qiscusCore() == Const.qiscusCore1()) {
+            createGroupPresenter = new CreateGroupPresenter(this,
+                    MyApplication.getInstance().getComponent().getChatRoomRepository());
+        } else {
+            createGroupPresenter = new CreateGroupPresenter(this,
+                    MyApplication.getInstance().getComponent().getChatRoomRepositoryAppId2());
+        }
 
         findViewById(R.id.submit).setOnClickListener(v -> {
             if (TextUtils.isEmpty(editText.getText().toString())) {
@@ -66,7 +74,7 @@ public class CreateGroupActivity extends AppCompatActivity implements CreateGrou
     }
 
     @Override
-    public void showGroupChatRoomPage(QiscusChatRoom chatRoom) {
+    public void showGroupChatRoomPage(QChatRoom chatRoom) {
         startActivity(GroupChatRoomActivity.generateIntent(this, chatRoom));
     }
 

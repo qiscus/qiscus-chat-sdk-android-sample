@@ -4,6 +4,8 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import androidx.annotation.NonNull;
 
+import org.json.JSONObject;
+
 /**
  * Created on : January 30, 2018
  * Author     : zetbaitsu
@@ -14,6 +16,7 @@ public class User implements Parcelable, Comparable<User> {
     private String id;
     private String name;
     private String avatarUrl;
+    protected JSONObject extras;
 
     public User() {
 

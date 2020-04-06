@@ -2,7 +2,7 @@ package com.qiscus.mychatui.presenter;
 
 import com.qiscus.mychatui.data.model.User;
 import com.qiscus.mychatui.data.source.ChatRoomRepository;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
 
 import java.util.List;
 
@@ -35,7 +35,7 @@ public class CreateGroupPresenter {
     }
 
     public interface View {
-        void showGroupChatRoomPage(QiscusChatRoom chatRoom);
+        void showGroupChatRoomPage(QChatRoom chatRoom);
 
         void showLoading();
 

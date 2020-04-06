@@ -2,7 +2,7 @@ package com.qiscus.mychatui.presenter;
 
 import com.qiscus.mychatui.data.source.ChatRoomRepository;
 import com.qiscus.mychatui.data.source.UserRepository;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
 
 import java.util.List;
 
@@ -29,8 +29,8 @@ public class HomePresenter {
                 throwable -> view.showErrorMessage(throwable.getMessage()));
     }
 
-    public void openChatRoom(QiscusChatRoom chatRoom) {
-        if (chatRoom.isGroup()) {
+    public void openChatRoom(QChatRoom chatRoom) {
+        if (chatRoom.getType().equals("group")) {
             view.showGroupChatRoomPage(chatRoom);
             return;
         }
@@ -38,11 +38,11 @@ public class HomePresenter {
     }
 
     public interface View {
-        void showChatRooms(List<QiscusChatRoom> chatRooms);
+        void showChatRooms(List<QChatRoom> chatRooms);
 
-        void showChatRoomPage(QiscusChatRoom chatRoom);
+        void showChatRoomPage(QChatRoom chatRoom);
 
-        void showGroupChatRoomPage(QiscusChatRoom chatRoom);
+        void showGroupChatRoomPage(QChatRoom chatRoom);
 
         void showErrorMessage(String errorMessage);
     }

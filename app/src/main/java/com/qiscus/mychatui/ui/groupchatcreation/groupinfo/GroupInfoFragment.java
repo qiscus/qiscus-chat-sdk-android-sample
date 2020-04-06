@@ -21,7 +21,8 @@ import com.qiscus.mychatui.data.model.User;
 import com.qiscus.mychatui.ui.GroupChatRoomActivity;
 import com.qiscus.mychatui.ui.HomeActivity;
 import com.qiscus.mychatui.ui.adapter.OnItemClickListener;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
+import com.qiscus.mychatui.util.Const;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -107,7 +108,11 @@ public class GroupInfoFragment extends Fragment implements GroupInfoPresenter.Vi
         recyclerView.setAdapter(adapter);
         adapter.addOrUpdate(contacts);
 
-        presenter = new GroupInfoPresenter(this, MyApplication.getInstance().getComponent().getChatRoomRepository());
+        if (Const.qiscusCore() == Const.qiscusCore1()) {
+            presenter = new GroupInfoPresenter(this, MyApplication.getInstance().getComponent().getChatRoomRepository());
+        } else {
+            presenter = new GroupInfoPresenter(this, MyApplication.getInstance().getComponent().getChatRoomRepositoryAppId2());
+        }
     }
 
     public void proceedCreateGroup() {
@@ -136,7 +141,7 @@ public class GroupInfoFragment extends Fragment implements GroupInfoPresenter.Vi
     }
 
     @Override
-    public void showGroupChatRoomPage(QiscusChatRoom chatRoom) {
+    public void showGroupChatRoomPage(QChatRoom chatRoom) {
         Intent chatIntent = GroupChatRoomActivity.generateIntent(getContext(), chatRoom);
         Intent parentIntent = new Intent(getActivity(), HomeActivity.class);
         chatIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);

@@ -3,7 +3,7 @@ package com.qiscus.mychatui.ui.groupchatcreation.groupinfo;
 
 import com.qiscus.mychatui.data.model.User;
 import com.qiscus.mychatui.data.source.ChatRoomRepository;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
 
 
 import java.util.List;
@@ -42,7 +42,7 @@ public class GroupInfoPresenter {
 
         void dismissLoading();
 
-        void showGroupChatRoomPage(QiscusChatRoom chatRoom);
+        void showGroupChatRoomPage(QChatRoom chatRoom);
 
         void showErrorMessage(String errorMessage);
     }

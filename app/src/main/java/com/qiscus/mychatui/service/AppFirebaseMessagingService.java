@@ -10,7 +10,10 @@ import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.qiscus.mychatui.MyApplication;
+import com.qiscus.mychatui.util.Const;
 import com.qiscus.sdk.chat.core.QiscusCore;
 import com.qiscus.sdk.chat.core.util.QiscusFirebaseMessagingUtil;
 
@@ -24,10 +27,21 @@ public class AppFirebaseMessagingService extends FirebaseMessagingService {
     public void onMessageReceived(RemoteMessage remoteMessage) {
         super.onMessageReceived(remoteMessage);
 
-        Log.d("Qiscus", "onMessageReceived " + remoteMessage.getData().toString());
-        if (QiscusFirebaseMessagingUtil.handleMessageReceived(remoteMessage)) {
-            return;
+        Gson gson = new Gson();
+        gson.toJson(remoteMessage.getData().get("payload"));
+
+        JsonObject jsonObject = new Gson().fromJson(remoteMessage.getData().get("payload"), JsonObject.class);
+
+        if (jsonObject.get("app_code").toString().equals(Const.qiscusCore1().getAppId())) {
+            if (Const.qiscusCore1().getFirebaseMessagingUtil().handleMessageReceived(remoteMessage)) {
+                return;
+            }
+        } else {
+            if (Const.qiscusCore2().getFirebaseMessagingUtil().handleMessageReceived(remoteMessage)) {
+                return;
+            }
         }
+
     }
 
     @Override
@@ -35,7 +49,8 @@ public class AppFirebaseMessagingService extends FirebaseMessagingService {
         super.onNewToken(s);
 
         Log.d("Qiscus", "onNewToken " + s);
-        QiscusCore.registerDeviceToken(s);
+        Const.qiscusCore1().registerDeviceToken(s);
+        Const.qiscusCore2().registerDeviceToken(s);
     }
 
     public static void getCurrentDeviceToken() {
@@ -54,8 +69,11 @@ public class AppFirebaseMessagingService extends FirebaseMessagingService {
 
                             MyApplication.getInstance().getComponent().getUserRepository().
                                     setDeviceToken(currentToken);
+                            MyApplication.getInstance().getComponent().getUserRepositoryAppId2().
+                                    setDeviceToken(currentToken);
 
-                            QiscusCore.registerDeviceToken(currentToken);
+                            Const.qiscusCore1().registerDeviceToken(currentToken);
+                            Const.qiscusCore2().registerDeviceToken(currentToken);
                         }
 
                     }

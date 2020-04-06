@@ -27,12 +27,11 @@ import com.qiscus.mychatui.ui.adapter.OnItemClickListener;
 import com.qiscus.mychatui.ui.adapter.ParticipantsRoomInfoAdapter;
 import com.qiscus.mychatui.ui.addmember.AddGroupMemberActivity;
 import com.qiscus.mychatui.ui.view.QiscusProgressView;
+import com.qiscus.mychatui.util.Const;
 import com.qiscus.mychatui.util.QiscusImageUtil;
 import com.qiscus.mychatui.util.QiscusPermissionsUtil;
 import com.qiscus.nirmana.Nirmana;
-import com.qiscus.sdk.chat.core.QiscusCore;
-import com.qiscus.sdk.chat.core.data.local.QiscusCacheManager;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
 import com.qiscus.sdk.chat.core.data.remote.QiscusApi;
 import com.qiscus.sdk.chat.core.util.QiscusFileUtil;
 
@@ -60,7 +59,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
             "android.permission.WRITE_EXTERNAL_STORAGE",
             "android.permission.READ_EXTERNAL_STORAGE",
     };
-    private QiscusChatRoom chatRoom;
+    private QChatRoom chatRoom;
     private TextView tvRoomName;
     private ImageView ivEditRoomName, ivEditAvatarRoom, ivAvatar, bt_back;
     private RecyclerView recyclerView;
@@ -70,7 +69,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
     private ParticipantsRoomInfoAdapter participantAdapter;
     private PopupWindow mPopupWindow;
 
-    public static Intent generateIntent(Context context, QiscusChatRoom chatRoom) {
+    public static Intent generateIntent(Context context, QChatRoom chatRoom) {
         Intent intent = new Intent(context, RoomInfoActivity.class);
         intent.putExtra(CHAT_ROOM_DATA, chatRoom);
         return intent;
@@ -171,7 +170,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
                                         intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
                                     } else {
                                         intent.putExtra(MediaStore.EXTRA_OUTPUT,
-                                                FileProvider.getUriForFile(getApplication(), QiscusCore.getApps().getPackageName() + ".qiscus.sdk.provider", photoFile));
+                                                FileProvider.getUriForFile(getApplication(), Const.qiscusCore().getApps().getPackageName() + ".qiscus.sdk.provider", photoFile));
                                     }
                                     startActivityForResult(intent, TAKE_PICTURE_REQUEST);
                                 }
@@ -224,13 +223,13 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
 
     @Override
     public void onItemClick(int position) {
-        String emailParticipant = participantAdapter.getData().get(position).getEmail();
+        String emailParticipant = participantAdapter.getData().get(position).getId();
         String[] arrEmail = {
                 emailParticipant
         };
 
-        QiscusApi.getInstance().removeParticipants(chatRoom.getId(), Arrays.asList(arrEmail))
-                .doOnNext(chatRoom -> QiscusCore.getDataStore().addOrUpdate(chatRoom))
+        Const.qiscusCore().getApi().removeParticipants(chatRoom.getId(), Arrays.asList(arrEmail))
+                .doOnNext(chatRoom -> Const.qiscusCore().getDataStore().addOrUpdate(chatRoom))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(newChatRoom -> {
@@ -270,7 +269,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
                 .load(chatRoom.getAvatarUrl())
                 .into(ivAvatar);
 
-        QiscusApi.getInstance().getParticipants(chatRoom.getUniqueId(), 1, 100, null,this)
+        Const.qiscusCore().getApi().getParticipants(chatRoom.getUniqueId(), 1, 100, null, this)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(participants -> {
@@ -312,7 +311,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
             }
         } else if (requestCode == TAKE_PICTURE_REQUEST && resultCode == Activity.RESULT_OK) {
             try {
-                File imageFile = QiscusFileUtil.from(Uri.parse(QiscusCacheManager.getInstance().getLastImagePath()));
+                File imageFile = QiscusFileUtil.from(Uri.parse(Const.qiscusCore().getCacheManager().getLastImagePath()));
                 updateAvatar(imageFile);
             } catch (Exception e) {
                 Toast.makeText(this, "Failed to read picture data!", Toast.LENGTH_SHORT).show();
@@ -339,7 +338,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
         File compressedFile = file;
         if (QiscusFileUtil.isImage(file.getPath()) && !file.getName().endsWith(".gif")) {
             try {
-                compressedFile = new Compressor(QiscusCore.getApps()).compressToFile(file);
+                compressedFile = new Compressor(Const.qiscusCore().getApps()).compressToFile(file);
             } catch (NullPointerException | IOException e) {
                 Toast.makeText(this, "Can not read file, please make sure that is not corrupted file!", Toast.LENGTH_SHORT).show();
                 return;
@@ -353,7 +352,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
             return;
         }
 
-        QiscusApi.getInstance()
+        Const.qiscusCore().getApi()
                 .upload(compressedFile, percentage ->
                 {
                     runOnUiThread(new Runnable() {
@@ -374,7 +373,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(uri -> {
-                    QiscusApi.getInstance().updateChatRoom(chatRoom.getId(), null, uri.toString(), null)
+                    Const.qiscusCore().getApi().updateChatRoom(chatRoom.getId(), null, uri.toString(), null)
                             .subscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
                             .subscribe(newChatroom -> {

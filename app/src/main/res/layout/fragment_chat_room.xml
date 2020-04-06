@@ -188,7 +188,7 @@
                 android:padding="8dp"
                 android:src="@drawable/ic_attach" />
 
-            <EditText
+            <com.qiscus.mychatui.ui.view.QiscusCustomEditText
                 android:id="@+id/field_message"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"

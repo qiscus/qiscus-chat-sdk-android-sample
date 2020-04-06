@@ -22,13 +22,12 @@ import com.bumptech.glide.request.RequestOptions;
 import com.qiscus.mychatui.MyApplication;
 import com.qiscus.mychatui.R;
 import com.qiscus.mychatui.presenter.ProfilePresenter;
+import com.qiscus.mychatui.util.Const;
 import com.qiscus.mychatui.util.QiscusImageUtil;
 import com.qiscus.mychatui.util.QiscusPermissionsUtil;
 import com.qiscus.nirmana.Nirmana;
 import com.qiscus.sdk.chat.core.QiscusCore;
-import com.qiscus.sdk.chat.core.data.local.QiscusCacheManager;
-import com.qiscus.sdk.chat.core.data.model.QiscusAccount;
-import com.qiscus.sdk.chat.core.data.remote.QiscusApi;
+import com.qiscus.sdk.chat.core.data.model.QAccount;
 import com.qiscus.sdk.chat.core.util.QiscusFileUtil;
 
 import java.io.File;
@@ -142,7 +141,8 @@ public class ProfileActivity extends AppCompatActivity implements ProfilePresent
                                         intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
                                     } else {
                                         intent.putExtra(MediaStore.EXTRA_OUTPUT,
-                                                FileProvider.getUriForFile(getApplication(), QiscusCore.getApps().getPackageName() + ".qiscus.sdk.provider", photoFile));
+                                                FileProvider.getUriForFile(getApplication(),
+                                                        Const.qiscusCore().getApps().getPackageName() + ".qiscus.sdk.provider", photoFile));
                                     }
                                     startActivityForResult(intent, TAKE_PICTURE_REQUEST);
                                 }
@@ -218,15 +218,15 @@ public class ProfileActivity extends AppCompatActivity implements ProfilePresent
 
     private void loadProfile() {
         //load profile from local db
-        tvUniqueID.setText(QiscusCore.getQiscusAccount().getEmail());
-        tvName.setText(QiscusCore.getQiscusAccount().getUsername());
+        tvUniqueID.setText(Const.qiscusCore().getQiscusAccount().getId());
+        tvName.setText(Const.qiscusCore().getQiscusAccount().getName());
 
         Nirmana.getInstance().get()
                 .setDefaultRequestOptions(new RequestOptions()
                         .placeholder(R.drawable.profile)
                         .error(R.drawable.profile)
                         .dontAnimate())
-                .load(QiscusCore.getQiscusAccount().getAvatar())
+                .load(Const.qiscusCore().getQiscusAccount().getAvatarUrl())
                 .into(ivAvatar);
     }
 
@@ -242,7 +242,7 @@ public class ProfileActivity extends AppCompatActivity implements ProfilePresent
             }
         } else if (requestCode == TAKE_PICTURE_REQUEST && resultCode == Activity.RESULT_OK) {
             try {
-                File imageFile = QiscusFileUtil.from(Uri.parse(QiscusCacheManager.getInstance().getLastImagePath()));
+                File imageFile = QiscusFileUtil.from(Uri.parse(Const.qiscusCore().getCacheManager().getLastImagePath()));
                 updateAvatar(imageFile);
             } catch (Exception e) {
                 Toast.makeText(this, "Failed to read picture data!", Toast.LENGTH_SHORT).show();
@@ -255,7 +255,7 @@ public class ProfileActivity extends AppCompatActivity implements ProfilePresent
         File compressedFile = file;
         if (QiscusFileUtil.isImage(file.getPath()) && !file.getName().endsWith(".gif")) {
             try {
-                compressedFile = new Compressor(QiscusCore.getApps()).compressToFile(file);
+                compressedFile = new Compressor(Const.qiscusCore().getApps()).compressToFile(file);
             } catch (NullPointerException | IOException e) {
                 Toast.makeText(this, "Can not read file, please make sure that is not corrupted file!", Toast.LENGTH_SHORT).show();
                 return;
@@ -269,7 +269,7 @@ public class ProfileActivity extends AppCompatActivity implements ProfilePresent
             return;
         }
 
-        Subscription subscription = QiscusApi.getInstance()
+        Subscription subscription = Const.qiscusCore().getApi()
                 .upload(compressedFile, percentage ->
                 {
                     //show percentage
@@ -280,9 +280,9 @@ public class ProfileActivity extends AppCompatActivity implements ProfilePresent
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(uri -> {
-                    QiscusCore.updateUser(null, uri.toString(), null, new QiscusCore.SetUserListener() {
+                    Const.qiscusCore().updateUser(null, uri.toString(), null, new QiscusCore.SetUserListener() {
                         @Override
-                        public void onSuccess(QiscusAccount qiscusAccount) {
+                        public void onSuccess(QAccount qiscusAccount) {
                             //do anything after it successfully updated
                             loadProfile();
                         }

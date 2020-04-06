@@ -1,11 +1,17 @@
 package com.qiscus.mychatui.ui;
 
+import android.app.Dialog;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -22,16 +28,20 @@ import com.qiscus.mychatui.R;
 import com.qiscus.mychatui.presenter.HomePresenter;
 import com.qiscus.mychatui.ui.adapter.ChatRoomAdapter;
 import com.qiscus.mychatui.ui.adapter.OnItemClickListener;
+import com.qiscus.mychatui.util.Const;
 import com.qiscus.mychatui.util.FirebaseUtil;
 import com.qiscus.nirmana.Nirmana;
-import com.qiscus.sdk.chat.core.QiscusCore;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
-import com.qiscus.sdk.chat.core.event.QiscusCommentReceivedEvent;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
+import com.qiscus.sdk.chat.core.data.model.QMessage;
+import com.qiscus.sdk.chat.core.event.QMessageReceivedEvent;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import java.util.List;
+
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
 
 public class HomeActivity extends AppCompatActivity implements HomePresenter.View, OnItemClickListener {
     private RecyclerView recyclerView;
@@ -65,6 +75,14 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(HomeActivity.this, ContactActivity.class));
+//                Const.qiscusCore().getApi().chatUser("s@mail.com", null)
+//                        .subscribeOn(Schedulers.io())
+//                        .observeOn(AndroidSchedulers.mainThread())
+//                        .subscribe(qiscusChatRoom -> {
+//                            startActivity(ChatRoomActivity.generateIntent(HomeActivity.this, qiscusChatRoom));
+//                        }, throwable -> {
+//                            Log.e("cccc", "onClick: " + throwable);
+//                        });
             }
         });
 
@@ -80,12 +98,35 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
                         .placeholder(R.drawable.ic_qiscus_avatar)
                         .error(R.drawable.ic_qiscus_avatar)
                         .dontAnimate())
-                .load(QiscusCore.getQiscusAccount().getAvatar())
+                .load(Const.qiscusCore1().getQiscusAccount().getAvatarUrl())
                 .into(avatarProfile);
 
         avatarProfile.setOnClickListener(v -> {
-            Intent intent = new Intent(HomeActivity.this, ProfileActivity.class);
-            startActivity(intent);
+            Dialog dialog = new Dialog(this);
+            dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+            dialog.setContentView(R.layout.custom_dialog);
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            dialog.getWindow().setLayout(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+
+            RelativeLayout mLayoutClose = dialog.findViewById(R.id.rv_close);
+            RelativeLayout mLayoutProfile = dialog.findViewById(R.id.rv_profile);
+            RelativeLayout mLayoutAppId2 = dialog.findViewById(R.id.rv_appid2);
+
+            mLayoutClose.setOnClickListener(view -> {
+                dialog.dismiss();
+            });
+
+            mLayoutProfile.setOnClickListener(view -> {
+                Intent intent = new Intent(HomeActivity.this, ProfileActivity.class);
+                startActivity(intent);
+            });
+
+            mLayoutAppId2.setOnClickListener(view -> {
+                Const.setQiscusCore(Const.qiscusCore2());
+                startActivity(new Intent(this, LoginActivityAppId2.class));
+            });
+
+            dialog.show();
         });
 
         recyclerView.setAdapter(chatRoomAdapter);
@@ -107,12 +148,13 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
     @Override
     protected void onResume() {
         super.onResume();
+        Const.setQiscusCore(Const.qiscusCore1());
         homePresenter.loadChatRooms();
         EventBus.getDefault().register(this);
     }
 
     @Subscribe
-    public void onCommentReceivedEvent(QiscusCommentReceivedEvent event) {
+    public void onCommentReceivedEvent(QMessageReceivedEvent event) {
         homePresenter.loadChatRooms();
     }
 
@@ -124,7 +166,7 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
 
 
     @Override
-    public void showChatRooms(List<QiscusChatRoom> chatRooms) {
+    public void showChatRooms(List<QChatRoom> chatRooms) {
         if (chatRooms.size() == 0) {
             recyclerView.setVisibility(View.GONE);
             linEmptyChatRooms.setVisibility(View.VISIBLE);
@@ -136,12 +178,12 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
     }
 
     @Override
-    public void showChatRoomPage(QiscusChatRoom chatRoom) {
+    public void showChatRoomPage(QChatRoom chatRoom) {
         startActivity(ChatRoomActivity.generateIntent(this, chatRoom));
     }
 
     @Override
-    public void showGroupChatRoomPage(QiscusChatRoom chatRoom) {
+    public void showGroupChatRoomPage(QChatRoom chatRoom) {
         startActivity(GroupChatRoomActivity.generateIntent(this, chatRoom));
     }
 
@@ -154,4 +196,6 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
     public void onItemClick(int position) {
         homePresenter.openChatRoom(chatRoomAdapter.getData().get(position));
     }
+
+
 }

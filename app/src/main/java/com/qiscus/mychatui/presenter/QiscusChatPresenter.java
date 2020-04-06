@@ -1,30 +1,26 @@
 package com.qiscus.mychatui.presenter;
 
+import android.util.Log;
 import android.webkit.MimeTypeMap;
 
 import androidx.core.util.Pair;
 
 import com.qiscus.mychatui.R;
+import com.qiscus.mychatui.util.Const;
 import com.qiscus.mychatui.util.QiscusImageUtil;
 import com.qiscus.sdk.chat.core.QiscusCore;
-import com.qiscus.sdk.chat.core.data.local.QiscusCacheManager;
-import com.qiscus.sdk.chat.core.data.model.QiscusAccount;
-import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
-import com.qiscus.sdk.chat.core.data.model.QiscusComment;
-import com.qiscus.sdk.chat.core.data.model.QiscusContact;
-import com.qiscus.sdk.chat.core.data.model.QiscusLocation;
-import com.qiscus.sdk.chat.core.data.model.QiscusRoomMember;
-import com.qiscus.sdk.chat.core.data.remote.QiscusApi;
-import com.qiscus.sdk.chat.core.data.remote.QiscusPusherApi;
-import com.qiscus.sdk.chat.core.data.remote.QiscusResendCommentHelper;
-import com.qiscus.sdk.chat.core.event.QiscusClearCommentsEvent;
-import com.qiscus.sdk.chat.core.event.QiscusCommentDeletedEvent;
-import com.qiscus.sdk.chat.core.event.QiscusCommentReceivedEvent;
-import com.qiscus.sdk.chat.core.event.QiscusCommentResendEvent;
+import com.qiscus.sdk.chat.core.data.model.QAccount;
+import com.qiscus.sdk.chat.core.data.model.QChatRoom;
+import com.qiscus.sdk.chat.core.data.model.QMessage;
+import com.qiscus.sdk.chat.core.data.model.QParticipant;
+import com.qiscus.sdk.chat.core.data.model.QUser;
+import com.qiscus.sdk.chat.core.event.QMessageDeletedEvent;
+import com.qiscus.sdk.chat.core.event.QMessageReceivedEvent;
+import com.qiscus.sdk.chat.core.event.QMessageResendEvent;
+import com.qiscus.sdk.chat.core.event.QiscusClearMessageEvent;
 import com.qiscus.sdk.chat.core.event.QiscusMqttStatusEvent;
 import com.qiscus.sdk.chat.core.presenter.QiscusChatRoomEventHandler;
 import com.qiscus.sdk.chat.core.util.QiscusAndroidUtil;
-import com.qiscus.sdk.chat.core.util.QiscusErrorLogger;
 import com.qiscus.sdk.chat.core.util.QiscusFileUtil;
 import com.qiscus.sdk.chat.core.util.QiscusTextUtil;
 
@@ -34,7 +30,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -42,7 +37,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import id.zelory.compressor.Compressor;
 import retrofit2.HttpException;
 import rx.Observable;
 import rx.Subscription;
@@ -56,15 +50,15 @@ import rx.schedulers.Schedulers;
  **/
 public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.View> implements QiscusChatRoomEventHandler.StateListener {
 
-    private QiscusChatRoom room;
-    private QiscusAccount qiscusAccount;
-    private Func2<QiscusComment, QiscusComment, Integer> commentComparator = (lhs, rhs) -> rhs.getTime().compareTo(lhs.getTime());
+    private QChatRoom room;
+    private QAccount qiscusAccount;
+    private Func2<QMessage, QMessage, Integer> commentComparator = (lhs, rhs) -> rhs.getTimestamp().compareTo(lhs.getTimestamp());
 
-    private Map<QiscusComment, Subscription> pendingTask;
+    private Map<QMessage, Subscription> pendingTask;
 
     private QiscusChatRoomEventHandler roomEventHandler;
 
-    public QiscusChatPresenter(View view, QiscusChatRoom room) {
+    public QiscusChatPresenter(View view, QChatRoom room) {
         super(view);
         this.view = view;
 
@@ -72,26 +66,26 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
             EventBus.getDefault().register(this);
         }
         this.room = room;
-        if (this.room.getMember().isEmpty()) {
-            this.room = QiscusCore.getDataStore().getChatRoom(room.getId());
+        if (this.room.getParticipants().isEmpty()) {
+            this.room = Const.qiscusCore().getDataStore().getChatRoom(room.getId());
         }
-        qiscusAccount = QiscusCore.getQiscusAccount();
+        qiscusAccount = Const.qiscusCore().getQiscusAccount();
         pendingTask = new HashMap<>();
 
-        roomEventHandler = new QiscusChatRoomEventHandler(this.room, this);
+        roomEventHandler = new QiscusChatRoomEventHandler(Const.qiscusCore(), this.room, this);
     }
 
-    private void commentSuccess(QiscusComment qiscusComment) {
+    private void commentSuccess(QMessage qiscusComment) {
         pendingTask.remove(qiscusComment);
-        qiscusComment.setState(QiscusComment.STATE_ON_QISCUS);
-        QiscusComment savedQiscusComment = QiscusCore.getDataStore().getComment(qiscusComment.getUniqueId());
-        if (savedQiscusComment != null && savedQiscusComment.getState() > qiscusComment.getState()) {
-            qiscusComment.setState(savedQiscusComment.getState());
+        qiscusComment.setStatus(QMessage.STATE_SENT);
+        QMessage savedQiscusComment = Const.qiscusCore().getDataStore().getComment(qiscusComment.getUniqueId());
+        if (savedQiscusComment != null && savedQiscusComment.getStatus() > qiscusComment.getStatus()) {
+            qiscusComment.setStatus(savedQiscusComment.getStatus());
         }
-        QiscusCore.getDataStore().addOrUpdate(qiscusComment);
+        Const.qiscusCore().getDataStore().addOrUpdate(qiscusComment);
     }
 
-    private boolean mustFailed(Throwable throwable, QiscusComment qiscusComment) {
+    private boolean mustFailed(Throwable throwable, QMessage qiscusComment) {
         //Error response from server
         //Means something wrong with server, e.g user is not member of these room anymore
         return ((throwable instanceof HttpException && ((HttpException) throwable).code() >= 400) ||
@@ -101,30 +95,30 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
                 qiscusComment.isAttachment());
     }
 
-    private void commentFail(Throwable throwable, QiscusComment qiscusComment) {
+    private void commentFail(Throwable throwable, QMessage qiscusComment) {
         pendingTask.remove(qiscusComment);
-        if (!QiscusCore.getDataStore().isContains(qiscusComment)) { //Have been deleted
+        if (!Const.qiscusCore().getDataStore().isContains(qiscusComment)) { //Have been deleted
             return;
         }
 
-        int state = QiscusComment.STATE_PENDING;
+        int state = QMessage.STATE_PENDING;
         if (mustFailed(throwable, qiscusComment)) {
-            qiscusComment.setDownloading(false);
-            state = QiscusComment.STATE_FAILED;
+//            qiscusComment.setDownloading(false);
+            state = QMessage.STATE_FAILED;
         }
 
         //Kalo ternyata comment nya udah sukses dikirim sebelumnya, maka ga usah di update
-        QiscusComment savedQiscusComment = QiscusCore.getDataStore().getComment(qiscusComment.getUniqueId());
-        if (savedQiscusComment != null && savedQiscusComment.getState() > QiscusComment.STATE_SENDING) {
+        QMessage savedQiscusComment = Const.qiscusCore().getDataStore().getComment(qiscusComment.getUniqueId());
+        if (savedQiscusComment != null && savedQiscusComment.getStatus() > QMessage.STATE_SENDING) {
             return;
         }
 
         //Simpen statenya
-        qiscusComment.setState(state);
-        QiscusCore.getDataStore().addOrUpdate(qiscusComment);
+        qiscusComment.setStatus(state);
+        Const.qiscusCore().getDataStore().addOrUpdate(qiscusComment);
     }
 
-    public void cancelPendingComment(QiscusComment qiscusComment) {
+    public void cancelPendingComment(QMessage qiscusComment) {
         if (pendingTask.containsKey(qiscusComment)) {
             Subscription subscription = pendingTask.get(qiscusComment);
             if (!subscription.isUnsubscribed()) {
@@ -134,22 +128,22 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
         }
     }
 
-    private void sendComment(QiscusComment qiscusComment) {
+    private void sendComment(QMessage qiscusComment) {
         view.onSendingComment(qiscusComment);
-        Subscription subscription = QiscusApi.getInstance().sendMessage(qiscusComment)
-                .doOnSubscribe(() -> QiscusCore.getDataStore().addOrUpdate(qiscusComment))
+        Subscription subscription = Const.qiscusCore().getApi().sendMessage(qiscusComment)
+                .doOnSubscribe(() -> Const.qiscusCore().getDataStore().addOrUpdate(qiscusComment))
                 .doOnNext(this::commentSuccess)
                 .doOnError(throwable -> commentFail(throwable, qiscusComment))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe(commentSend -> {
-                    if (commentSend.getRoomId() == room.getId()) {
+                    if (commentSend.getChatRoomId() == room.getId()) {
                         view.onSuccessSendComment(commentSend);
                     }
                 }, throwable -> {
                     throwable.printStackTrace();
-                    if (qiscusComment.getRoomId() == room.getId()) {
+                    if (qiscusComment.getChatRoomId() == room.getId()) {
                         view.onFailedSendComment(qiscusComment);
                     }
                 });
@@ -157,34 +151,74 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
         pendingTask.put(qiscusComment, subscription);
     }
 
-    public void sendComment(String content) {
-        QiscusComment qiscusComment = QiscusComment.generateMessage(room.getId(), content);
-        sendComment(qiscusComment);
-    }
+    public void sendComment(String message) {
+        QMessage qMessage = QMessage.generateMessage(room.getId(), message);
+        Const.qiscusCore().sendMessage(qMessage, new QiscusCore.OnSendMessageListener() {
+            @Override
+            public void onSending(QMessage qiscusComment) {
+                view.onSendingComment(qiscusComment);
+                Const.qiscusCore().getDataStore().addOrUpdate(qiscusComment);
+            }
 
-    public void sendContact(QiscusContact contact) {
-        QiscusComment qiscusComment = QiscusComment.generateContactMessage(room.getId(), contact);
-        sendComment(qiscusComment);
-    }
+            @Override
+            public void onSuccess(QMessage qiscusComment) {
+                if (qiscusComment.getChatRoomId() == room.getId()) {
+                    commentSuccess(qiscusComment);
+                    view.onSuccessSendComment(qiscusComment);
+                }
+            }
 
-    public void sendLocation(QiscusLocation location) {
-        QiscusComment qiscusComment = QiscusComment.generateLocationMessage(room.getId(), location);
-        sendComment(qiscusComment);
+            @Override
+            public void onFailed(Throwable t, QMessage qiscusComment) {
+                t.printStackTrace();
+                if (qiscusComment.getChatRoomId() == room.getId()) {
+                    view.onFailedSendComment(qiscusComment);
+                }
+            }
+        });
     }
 
     public void sendCommentPostBack(String content, String payload) {
-        QiscusComment qiscusComment = QiscusComment.generatePostBackMessage(room.getId(), content, payload);
+        QMessage qiscusComment = null;
+        try {
+            qiscusComment = QMessage.generatePostBackMessage(room.getId(), content, new JSONObject(payload));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
         sendComment(qiscusComment);
     }
 
-    public void sendReplyComment(String content, QiscusComment originComment) {
-        QiscusComment qiscusComment = QiscusComment.generateReplyMessage(room.getId(), content, originComment);
+    public void sendReplyComment(String message, QMessage originComment) {
+        QMessage qiscusComment = QMessage.generateReplyMessage(room.getId(), message, originComment);
         sendComment(qiscusComment);
+        Const.qiscusCore().sendMessage(qiscusComment, new QiscusCore.OnSendMessageListener() {
+            @Override
+            public void onSending(QMessage qiscusComment) {
+                view.onSendingComment(qiscusComment);
+                Const.qiscusCore().getDataStore().addOrUpdate(qiscusComment);
+            }
+
+            @Override
+            public void onSuccess(QMessage qiscusComment) {
+                if (qiscusComment.getChatRoomId() == room.getId()) {
+                    commentSuccess(qiscusComment);
+                    view.onSuccessSendComment(qiscusComment);
+                }
+            }
+
+            @Override
+            public void onFailed(Throwable t, QMessage qiscusComment) {
+                t.printStackTrace();
+                if (qiscusComment.getChatRoomId() == room.getId()) {
+                    view.onFailedSendComment(qiscusComment);
+                }
+            }
+        });
     }
 
-    public void resendComment(QiscusComment qiscusComment) {
-        qiscusComment.setState(QiscusComment.STATE_SENDING);
-        qiscusComment.setTime(new Date());
+    public void resendComment(QMessage qiscusComment) {
+        qiscusComment.setStatus(QMessage.STATE_SENDING);
+        qiscusComment.setTimestamp(new Date());
         if (qiscusComment.isAttachment()) {
             resendFile(qiscusComment);
         } else {
@@ -214,42 +248,51 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
             return;
         }
 
-        QiscusComment qiscusComment = QiscusComment.generateFileAttachmentMessage(room.getId(),
+        QMessage qiscusComment = QMessage.generateFileAttachmentMessage(room.getId(),
                 compressedFile.getPath(), caption, file.getName());
-        qiscusComment.setDownloading(true);
+//        qiscusComment.setDownloading(true);
         view.onSendingComment(qiscusComment);
 
         File finalCompressedFile = compressedFile;
 
-        Subscription subscription = QiscusApi.getInstance().sendFileMessage(
-                qiscusComment, finalCompressedFile, percentage -> {
-                    qiscusComment.setProgress((int) percentage);
-                }).doOnSubscribe(() -> QiscusCore.getDataStore().addOrUpdate(qiscusComment))
-                .doOnNext(this::commentSuccess)
-                .doOnError(throwable -> commentFail(throwable, qiscusComment))
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .compose(bindToLifecycle())
-                .subscribe(commentSend -> {
-                    if (commentSend.getRoomId() == room.getId()) {
-                        commentSend.setDownloading(false);
-                        view.onSuccessSendComment(commentSend);
-                        QiscusCore.getDataStore()
-                                .addOrUpdateLocalPath(commentSend.getRoomId(),
-                                        commentSend.getId(), finalCompressedFile.getAbsolutePath());
-                    }
-                }, throwable -> {
-                    throwable.printStackTrace();
-                    if (qiscusComment.getRoomId() == room.getId()) {
-                        view.onFailedSendComment(qiscusComment);
-                    }
-                });
+        Const.qiscusCore().sendFileMessage(qiscusComment, finalCompressedFile, new QiscusCore.OnProgressUploadListener() {
+            @Override
+            public void onSending(QMessage qiscusComment) {
+                view.onSendingComment(qiscusComment);
+                Const.qiscusCore().getDataStore().addOrUpdate(qiscusComment);
+            }
 
-        pendingTask.put(qiscusComment, subscription);
+            @Override
+            public void onProgress(long progress) {
+//                // qiscusComment.setProgress((int) progress);
+            }
+
+            @Override
+            public void onSuccess(QMessage qiscusComment) {
+                if (qiscusComment.getChatRoomId() == room.getId()) {
+                    commentSuccess(qiscusComment);
+//                    qiscusComment.setDownloading(false);
+                    view.onSuccessSendComment(qiscusComment);
+                    Const.qiscusCore().getDataStore()
+                            .addOrUpdateLocalPath(qiscusComment.getChatRoomId(),
+                                    qiscusComment.getId(), finalCompressedFile.getAbsolutePath());
+                }
+            }
+
+            @Override
+            public void onFailed(Throwable t, QMessage qiscusComment1) {
+                t.printStackTrace();
+                if (qiscusComment1.getChatRoomId() == room.getId()) {
+                    view.onFailedSendComment(qiscusComment1);
+                }
+            }
+        });
+
+//        pendingTask.put(qiscusComment, subscription);
     }
 
 
-    private void resendFile(QiscusComment qiscusComment) {
+    private void resendFile(QMessage qiscusComment) {
         if (qiscusComment.getAttachmentUri().toString().startsWith("http")) { //We forward file message
             forwardFile(qiscusComment);
             return;
@@ -257,26 +300,28 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
 
         File file = new File(qiscusComment.getAttachmentUri().toString());
         if (!file.exists()) { //File have been removed, so we can not upload it anymore
-            qiscusComment.setDownloading(false);
-            qiscusComment.setState(QiscusComment.STATE_FAILED);
-            QiscusCore.getDataStore().addOrUpdate(qiscusComment);
+            // qiscusComment.setDownloading(false);
+            qiscusComment.setStatus(QMessage.STATE_FAILED);
+            Const.qiscusCore().getDataStore().addOrUpdate(qiscusComment);
             view.onFailedSendComment(qiscusComment);
             return;
         }
 
-        qiscusComment.setDownloading(true);
-        qiscusComment.setProgress(0);
-        Subscription subscription = QiscusApi.getInstance()
-                .upload(file, percentage -> qiscusComment.setProgress((int) percentage))
-                .doOnSubscribe(() -> QiscusCore.getDataStore().addOrUpdate(qiscusComment))
+        // qiscusComment.setDownloading(true);
+        // qiscusComment.setProgress(0);
+        Subscription subscription = Const.qiscusCore().getApi()
+                .upload(file, percentage -> {
+                    // qiscusComment.setProgress((int) percentage)
+                })
+                .doOnSubscribe(() -> Const.qiscusCore().getDataStore().addOrUpdate(qiscusComment))
                 .flatMap(uri -> {
                     qiscusComment.updateAttachmentUrl(uri.toString());
-                    return QiscusApi.getInstance().sendMessage(qiscusComment);
+                    return Const.qiscusCore().getApi().sendMessage(qiscusComment);
                 })
                 .doOnNext(commentSend -> {
-                    QiscusCore.getDataStore()
-                            .addOrUpdateLocalPath(commentSend.getRoomId(), commentSend.getId(), file.getAbsolutePath());
-                    qiscusComment.setDownloading(false);
+                    Const.qiscusCore().getDataStore()
+                            .addOrUpdateLocalPath(commentSend.getChatRoomId(), commentSend.getId(), file.getAbsolutePath());
+                    // qiscusComment.setDownloading(false);
                     commentSuccess(commentSend);
                 })
                 .doOnError(throwable -> commentFail(throwable, qiscusComment))
@@ -284,12 +329,12 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe(commentSend -> {
-                    if (commentSend.getRoomId() == room.getId()) {
+                    if (commentSend.getChatRoomId() == room.getId()) {
                         view.onSuccessSendComment(commentSend);
                     }
                 }, throwable -> {
                     throwable.printStackTrace();
-                    if (qiscusComment.getRoomId() == room.getId()) {
+                    if (qiscusComment.getChatRoomId() == room.getId()) {
                         view.onFailedSendComment(qiscusComment);
                     }
                 });
@@ -297,28 +342,28 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
         pendingTask.put(qiscusComment, subscription);
     }
 
-    private void forwardFile(QiscusComment qiscusComment) {
-        qiscusComment.setProgress(100);
-        Subscription subscription = QiscusApi.getInstance().sendMessage(qiscusComment)
-                .doOnSubscribe(() -> QiscusCore.getDataStore().addOrUpdate(qiscusComment))
+    private void forwardFile(QMessage qiscusComment) {
+        // qiscusComment.setProgress(100);
+        Subscription subscription = Const.qiscusCore().getApi().sendMessage(qiscusComment)
+                .doOnSubscribe(() -> Const.qiscusCore().getDataStore().addOrUpdate(qiscusComment))
                 .doOnNext(commentSend -> {
-                    qiscusComment.setDownloading(false);
+                    // qiscusComment.setDownloading(false);
                     commentSuccess(commentSend);
                 })
                 .doOnError(throwable -> {
-                    qiscusComment.setDownloading(false);
+                    // qiscusComment.setDownloading(false);
                     commentFail(throwable, qiscusComment);
                 })
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
                 .subscribe(commentSend -> {
-                    if (commentSend.getRoomId() == room.getId()) {
+                    if (commentSend.getChatRoomId() == room.getId()) {
                         view.onSuccessSendComment(commentSend);
                     }
                 }, throwable -> {
                     throwable.printStackTrace();
-                    if (qiscusComment.getRoomId() == room.getId()) {
+                    if (qiscusComment.getChatRoomId() == room.getId()) {
                         view.onFailedSendComment(qiscusComment);
                     }
                 });
@@ -326,20 +371,20 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
         pendingTask.put(qiscusComment, subscription);
     }
 
-    public void deleteComment(QiscusComment qiscusComment) {
+    public void deleteComment(QMessage qiscusComment) {
         cancelPendingComment(qiscusComment);
-        QiscusResendCommentHelper.cancelPendingComment(qiscusComment);
+        Const.qiscusCore().getQiscusResendCommentHelper().cancelPendingComment(qiscusComment);
 
         // this code for delete from local
-        QiscusAndroidUtil.runOnBackgroundThread(() -> QiscusCore.getDataStore().delete(qiscusComment));
+        QiscusAndroidUtil.runOnBackgroundThread(() -> Const.qiscusCore().getDataStore().delete(qiscusComment));
         if (view != null) {
             view.dismissLoading();
             view.onCommentDeleted(qiscusComment);
         }
-        Observable.from(new QiscusComment[]{qiscusComment})
-                .map(QiscusComment::getUniqueId)
+        Observable.from(new QMessage[]{qiscusComment})
+                .map(QMessage::getUniqueId)
                 .toList()
-                .flatMap(uniqueIds -> QiscusApi.getInstance().deleteMessages(uniqueIds))
+                .flatMap(uniqueIds -> Const.qiscusCore().getApi().deleteMessages(uniqueIds))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
@@ -357,8 +402,8 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
                 });
     }
 
-    private Observable<Pair<QiscusChatRoom, List<QiscusComment>>> getInitRoomData() {
-        return QiscusApi.getInstance().getChatRoomWithMessages(room.getId())
+    private Observable<Pair<QChatRoom, List<QMessage>>> getInitRoomData() {
+        return Const.qiscusCore().getApi().getChatRoomWithMessages(room.getId())
                 .doOnError(throwable -> {
                     throwable.printStackTrace();
                     QiscusAndroidUtil.runOnUIThread(() -> {
@@ -370,31 +415,31 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
                 .doOnNext(roomData -> {
                     roomEventHandler.setChatRoom(roomData.first);
 
-                    Collections.sort(roomData.second, (lhs, rhs) -> rhs.getTime().compareTo(lhs.getTime()));
+                    Collections.sort(roomData.second, (lhs, rhs) -> rhs.getTimestamp().compareTo(lhs.getTimestamp()));
 
-                    QiscusCore.getDataStore().addOrUpdate(roomData.first);
+                    Const.qiscusCore().getDataStore().addOrUpdate(roomData.first);
                 })
                 .doOnNext(roomData -> {
-                    for (QiscusComment qiscusComment : roomData.second) {
-                        QiscusCore.getDataStore().addOrUpdate(qiscusComment);
+                    for (QMessage qiscusComment : roomData.second) {
+                        Const.qiscusCore().getDataStore().addOrUpdate(qiscusComment);
                     }
                 })
                 .subscribeOn(Schedulers.io())
                 .onErrorReturn(throwable -> null);
     }
 
-    private Observable<List<QiscusComment>> getCommentsFromNetwork(long lastCommentId) {
-        return QiscusApi.getInstance().getPreviousMessagesById(room.getId(), 20, lastCommentId)
+    private Observable<List<QMessage>> getCommentsFromNetwork(long lastCommentId) {
+        return Const.qiscusCore().getApi().getPreviousMessagesById(room.getId(), 20, lastCommentId)
                 .doOnNext(qiscusComment -> {
-                    QiscusCore.getDataStore().addOrUpdate(qiscusComment);
-                    qiscusComment.setRoomId(room.getId());
+                    Const.qiscusCore().getDataStore().addOrUpdate(qiscusComment);
+                    qiscusComment.setChatRoomId(room.getId());
                 })
                 .toSortedList(commentComparator)
                 .subscribeOn(Schedulers.io());
     }
 
-    private Observable<List<QiscusComment>> getLocalComments(int count, boolean forceFailedSendingComment) {
-        return QiscusCore.getDataStore().getObservableComments(room.getId(), 2 * count)
+    private Observable<List<QMessage>> getLocalComments(int count, boolean forceFailedSendingComment) {
+        return Const.qiscusCore().getDataStore().getObservableComments(room.getId(), 2 * count)
                 .flatMap(Observable::from)
                 .toSortedList(commentComparator)
                 .map(comments -> {
@@ -406,8 +451,8 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
                 .subscribeOn(Schedulers.io());
     }
 
-    public List<QiscusComment> loadLocalComments(int count) {
-        return QiscusCore.getDataStore().getComments(room.getId(), count);
+    public List<QMessage> loadLocalComments(int count) {
+        return Const.qiscusCore().getDataStore().getComments(room.getId(), count);
     }
 
     public void loadComments(int count) {
@@ -432,9 +477,9 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
                 });
     }
 
-    private List<QiscusComment> cleanFailedComments(List<QiscusComment> qiscusComments) {
-        List<QiscusComment> comments = new ArrayList<>();
-        for (QiscusComment qiscusComment : qiscusComments) {
+    private List<QMessage> cleanFailedComments(List<QMessage> qiscusComments) {
+        List<QMessage> comments = new ArrayList<>();
+        for (QMessage qiscusComment : qiscusComments) {
             if (qiscusComment.getId() != -1) {
                 comments.add(qiscusComment);
             }
@@ -442,7 +487,7 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
         return comments;
     }
 
-    private boolean isValidOlderComments(List<QiscusComment> qiscusComments, QiscusComment lastQiscusComment) {
+    private boolean isValidOlderComments(List<QMessage> qiscusComments, QMessage lastQiscusComment) {
         if (qiscusComments.isEmpty()) return false;
 
         qiscusComments = cleanFailedComments(qiscusComments);
@@ -450,36 +495,36 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
         int size = qiscusComments.size();
 
         if (size == 1) {
-            return qiscusComments.get(0).getCommentBeforeId() == 0
-                    && lastQiscusComment.getCommentBeforeId() == qiscusComments.get(0).getId();
+            return qiscusComments.get(0).getPreviousMessageId() == 0
+                    && lastQiscusComment.getPreviousMessageId() == qiscusComments.get(0).getId();
         }
 
         for (int i = 0; i < size - 1; i++) {
-            if (!containsLastValidComment && qiscusComments.get(i).getId() == lastQiscusComment.getCommentBeforeId()) {
+            if (!containsLastValidComment && qiscusComments.get(i).getId() == lastQiscusComment.getPreviousMessageId()) {
                 containsLastValidComment = true;
             }
 
-            if (qiscusComments.get(i).getCommentBeforeId() != qiscusComments.get(i + 1).getId()) {
+            if (qiscusComments.get(i).getPreviousMessageId() != qiscusComments.get(i + 1).getId()) {
                 return false;
             }
         }
         return containsLastValidComment;
     }
 
-    private boolean isValidChainingComments(List<QiscusComment> qiscusComments) {
+    private boolean isValidChainingComments(List<QMessage> qiscusComments) {
         qiscusComments = cleanFailedComments(qiscusComments);
         int size = qiscusComments.size();
         for (int i = 0; i < size - 1; i++) {
-            if (qiscusComments.get(i).getCommentBeforeId() != qiscusComments.get(i + 1).getId()) {
+            if (qiscusComments.get(i).getPreviousMessageId() != qiscusComments.get(i + 1).getId()) {
                 return false;
             }
         }
         return true;
     }
 
-    public void loadOlderCommentThan(QiscusComment qiscusComment) {
+    public void loadOlderCommentThan(QMessage qiscusComment) {
         view.showLoadMoreLoading();
-        QiscusCore.getDataStore().getObservableOlderCommentsThan(qiscusComment, room.getId(), 40)
+        Const.qiscusCore().getDataStore().getObservableOlderCommentsThan(qiscusComment, room.getId(), 40)
                 .flatMap(Observable::from)
                 .filter(qiscusComment1 -> qiscusComment.getId() == -1 || qiscusComment1.getId() < qiscusComment.getId())
                 .toSortedList(commentComparator)
@@ -493,8 +538,8 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
                 .flatMap(comments -> isValidOlderComments(comments, qiscusComment) ?
                         Observable.from(comments).toSortedList(commentComparator) :
                         getCommentsFromNetwork(qiscusComment.getId()).map(comments1 -> {
-                            for (QiscusComment localComment : comments) {
-                                if (localComment.getState() <= QiscusComment.STATE_SENDING) {
+                            for (QMessage localComment : comments) {
+                                if (localComment.getStatus() <= QMessage.STATE_SENDING) {
                                     comments1.add(localComment);
                                 }
                             }
@@ -517,14 +562,19 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
                 });
     }
 
-    private void updateRepliedSender(List<QiscusComment> comments) {
-        for (QiscusComment comment : comments) {
-            if (comment.getType() == QiscusComment.Type.REPLY) {
-                QiscusComment repliedComment = comment.getReplyTo();
+    private void updateRepliedSender(List<QMessage> comments) {
+        for (QMessage comment : comments) {
+            if (comment.getType() == QMessage.Type.REPLY) {
+                QMessage repliedComment = comment.getReplyTo();
                 if (repliedComment != null) {
-                    for (QiscusRoomMember qiscusRoomMember : room.getMember()) {
-                        if (repliedComment.getSenderEmail().equals(qiscusRoomMember.getEmail())) {
-                            repliedComment.setSender(qiscusRoomMember.getUsername());
+                    for (QParticipant qParticipant : room.getParticipants()) {
+                        if (repliedComment.getSender().getId().equals(qParticipant.getId())) {
+                            QUser qUser = new QUser();
+                            qUser.setName(qParticipant.getName());
+                            qUser.setId(qParticipant.getId());
+                            qUser.setAvatarUrl(qParticipant.getAvatarUrl());
+
+                            repliedComment.setSender(qUser);
                             comment.setReplyTo(repliedComment);
                             break;
                         }
@@ -539,9 +589,9 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
         view.onRealtimeStatusChanged(event == QiscusMqttStatusEvent.CONNECTED);
     }
 
-    public void loadCommentsAfter(QiscusComment comment) {
-        QiscusApi.getInstance().getNextMessagesById(room.getId(), 20, comment.getId())
-                .doOnNext(qiscusComment -> qiscusComment.setRoomId(room.getId()))
+    public void loadCommentsAfter(QMessage comment) {
+        Const.qiscusCore().getApi().getNextMessagesById(room.getId(), 20, comment.getId())
+                .doOnNext(qiscusComment -> qiscusComment.setChatRoomId(room.getId()))
                 .toSortedList(commentComparator)
                 .doOnNext(Collections::reverse)
                 .subscribeOn(Schedulers.newThread())
@@ -555,8 +605,8 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
     }
 
     @Subscribe
-    public void handleRetryCommentEvent(QiscusCommentResendEvent event) {
-        if (event.getQiscusComment().getRoomId() == room.getId()) {
+    public void handleRetryCommentEvent(QMessageResendEvent event) {
+        if (event.getQiscusComment().getChatRoomId() == room.getId()) {
             QiscusAndroidUtil.runOnUIThread(() -> {
                 if (view != null) {
                     view.refreshComment(event.getQiscusComment());
@@ -566,8 +616,8 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
     }
 
     @Subscribe
-    public void handleDeleteCommentEvent(QiscusCommentDeletedEvent event) {
-        if (event.getQiscusComment().getRoomId() == room.getId()) {
+    public void handleDeleteCommentEvent(QMessageDeletedEvent event) {
+        if (event.getQiscusComment().getChatRoomId() == room.getId()) {
             QiscusAndroidUtil.runOnUIThread(() -> {
                 if (view != null) {
                     if (event.isHardDelete()) {
@@ -581,14 +631,14 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
     }
 
     @Subscribe
-    public void onCommentReceivedEvent(QiscusCommentReceivedEvent event) {
-        if (event.getQiscusComment().getRoomId() == room.getId()) {
+    public void onCommentReceivedEvent(QMessageReceivedEvent event) {
+        if (event.getQiscusComment().getChatRoomId() == room.getId()) {
             onGotNewComment(event.getQiscusComment());
         }
     }
 
     @Subscribe
-    public void handleClearCommentsEvent(QiscusClearCommentsEvent event) {
+    public void handleClearCommentsEvent(QiscusClearMessageEvent event) {
         if (event.getRoomId() == room.getId()) {
             QiscusAndroidUtil.runOnUIThread(() -> {
                 if (view != null) {
@@ -598,61 +648,55 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
         }
     }
 
-    private void onGotNewComment(QiscusComment qiscusComment) {
-        if (qiscusComment.getSenderEmail().equalsIgnoreCase(qiscusAccount.getEmail())) {
-            QiscusAndroidUtil.runOnBackgroundThread(() -> commentSuccess(qiscusComment));
-        } else {
-            roomEventHandler.onGotComment(qiscusComment);
-        }
-
-        if (qiscusComment.getRoomId() == room.getId()) {
+    private void onGotNewComment(QMessage qiscusComment) {
+        if (qiscusComment.getChatRoomId() == room.getId()) {
             QiscusAndroidUtil.runOnBackgroundThread(() -> {
-                if (!qiscusComment.getSenderEmail().equalsIgnoreCase(qiscusAccount.getEmail())
-                        && QiscusCacheManager.getInstance().getLastChatActivity().first) {
-                    QiscusPusherApi.getInstance().markAsRead(room.getId(), qiscusComment.getId());
+                if (!qiscusComment.getSender().getId().equalsIgnoreCase(qiscusAccount.getId())
+                        && Const.qiscusCore().getCacheManager().getLastChatActivity().first) {
+                    Const.qiscusCore().getPusherApi().markAsRead(room.getId(), qiscusComment.getId());
                 }
             });
             view.onNewComment(qiscusComment);
         }
+
+        if (qiscusComment.getSender().getId().equalsIgnoreCase(qiscusAccount.getId())) {
+            QiscusAndroidUtil.runOnBackgroundThread(() -> commentSuccess(qiscusComment));
+        } else {
+            roomEventHandler.onGotComment(qiscusComment);
+        }
     }
 
-    public void downloadFile(final QiscusComment qiscusComment) {
-        if (qiscusComment.isDownloading()) {
-            return;
-        }
+    public void downloadFile(final QMessage qiscusComment) {
 
-        File file = QiscusCore.getDataStore().getLocalPath(qiscusComment.getId());
+        File file = Const.qiscusCore().getDataStore().getLocalPath(qiscusComment.getId());
         if (file == null) {
-            qiscusComment.setDownloading(true);
-            QiscusApi.getInstance()
+            // qiscusComment.setDownloading(true);
+            Const.qiscusCore().getApi()
                     .downloadFile(qiscusComment.getAttachmentUri().toString(), qiscusComment.getAttachmentName(),
-                            percentage -> qiscusComment.setProgress((int) percentage))
+                            percentage -> {
+                        // qiscusComment.setProgress((int) percentage)
+                    })
                     .subscribeOn(Schedulers.io())
                     .observeOn(AndroidSchedulers.mainThread())
                     .compose(bindToLifecycle())
                     .doOnNext(file1 -> {
                         QiscusFileUtil.notifySystem(file1);
-                        qiscusComment.setDownloading(false);
-                        QiscusCore.getDataStore().addOrUpdateLocalPath(qiscusComment.getRoomId(), qiscusComment.getId(),
+                        // qiscusComment.setDownloading(false);
+                        Const.qiscusCore().getDataStore().addOrUpdateLocalPath(qiscusComment.getChatRoomId(), qiscusComment.getId(),
                                 file1.getAbsolutePath());
                     })
                     .subscribe(file1 -> {
                         view.notifyDataChanged();
-                        if (qiscusComment.getType() == QiscusComment.Type.AUDIO) {
-                            qiscusComment.playAudio();
-                        } else if (qiscusComment.getType() == QiscusComment.Type.FILE
-                                || qiscusComment.getType() == QiscusComment.Type.VIDEO) {
+                        if (qiscusComment.getType() == QMessage.Type.FILE) {
                             view.onFileDownloaded(file1, MimeTypeMap.getSingleton().getMimeTypeFromExtension(qiscusComment.getExtension()));
                         }
                     }, throwable -> {
                         throwable.printStackTrace();
-                        qiscusComment.setDownloading(false);
+                        // qiscusComment.setDownloading(false);
                         view.showError(QiscusTextUtil.getString(R.string.qiscus_failed_download_file));
                     });
         } else {
-            if (qiscusComment.getType() == QiscusComment.Type.AUDIO) {
-                qiscusComment.playAudio();
-            } else if (qiscusComment.getType() == QiscusComment.Type.IMAGE) {
+            if (qiscusComment.getType() == QMessage.Type.IMAGE) {
                 view.startPhotoViewer(qiscusComment);
             } else {
                 view.onFileDownloaded(file, MimeTypeMap.getSingleton().getMimeTypeFromExtension(qiscusComment.getExtension()));
@@ -660,9 +704,9 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
         }
     }
 
-    public void loadUntilComment(QiscusComment qiscusComment) {
-        QiscusCore.getDataStore().getObservableCommentsAfter(qiscusComment, room.getId())
-                .map(comments -> comments.contains(qiscusComment) ? comments : new ArrayList<QiscusComment>())
+    public void loadUntilComment(QMessage qiscusComment) {
+        Const.qiscusCore().getDataStore().getObservableCommentsAfter(qiscusComment, room.getId())
+                .map(comments -> comments.contains(qiscusComment) ? comments : new ArrayList<QMessage>())
                 .doOnNext(qiscusComments -> {
                     if (qiscusComments.isEmpty()) {
                         QiscusAndroidUtil.runOnUIThread(() -> {
@@ -676,7 +720,7 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
                 .toSortedList(commentComparator)
                 .flatMap(comments -> isValidChainingComments(comments) ?
                         Observable.from(comments).toSortedList(commentComparator) :
-                        Observable.just(new ArrayList<QiscusComment>()))
+                        Observable.just(new ArrayList<QMessage>()))
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
@@ -687,34 +731,22 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
                 }, Throwable::printStackTrace);
     }
 
-    public void forward(List<QiscusComment> forwardComments) {
+    public void forward(List<QMessage> forwardComments) {
         for (int i = 0; i < forwardComments.size(); i++) {
             int finalI = i;
             QiscusAndroidUtil.runOnUIThread(() -> {
-                QiscusComment forwardComment = forwardComments.get(finalI);
-                QiscusComment qiscusComment;
-                if (forwardComment.getType() == QiscusComment.Type.CONTACT) {
-                    qiscusComment = QiscusComment.generateContactMessage(room.getId(), forwardComment.getContact());
-                } else if (forwardComment.getType() == QiscusComment.Type.LOCATION) {
-                    qiscusComment = QiscusComment.generateLocationMessage(room.getId(), forwardComment.getLocation());
-                } else if (forwardComment.getType() == QiscusComment.Type.IMAGE) {
-                    qiscusComment = QiscusComment.generateFileAttachmentMessage(room.getId(),
-                            forwardComment.getAttachmentUri().toString(), forwardComment.getCaption(),
+                QMessage forwardComment = forwardComments.get(finalI);
+                QMessage qiscusComment;
+                if (forwardComment.getType() == QMessage.Type.IMAGE) {
+                    qiscusComment = QMessage.generateFileAttachmentMessage(room.getId(),
+                            forwardComment.getAttachmentUri().toString(), forwardComment.getText(),
                             forwardComment.getAttachmentName());
-                } else if (forwardComment.getType() == QiscusComment.Type.AUDIO) {
-                    qiscusComment = QiscusComment.generateFileAttachmentMessage(room.getId(), forwardComment.getAttachmentUri().toString(),
-                            forwardComment.getCaption(),
-                            forwardComment.getAttachmentName());
-                } else if (forwardComment.getType() == QiscusComment.Type.FILE) {
-                    qiscusComment = QiscusComment.generateFileAttachmentMessage(room.getId(), forwardComment.getAttachmentUri().toString(),
-                            forwardComment.getCaption(),
-                            forwardComment.getAttachmentName());
-                } else if (forwardComment.getType() == QiscusComment.Type.VIDEO) {
-                    qiscusComment = QiscusComment.generateFileAttachmentMessage(room.getId(), forwardComment.getAttachmentUri().toString(),
-                            forwardComment.getCaption(),
+                } else if (forwardComment.getType() == QMessage.Type.FILE) {
+                    qiscusComment = QMessage.generateFileAttachmentMessage(room.getId(), forwardComment.getAttachmentUri().toString(),
+                            forwardComment.getText(),
                             forwardComment.getAttachmentName());
                 } else {
-                    qiscusComment = QiscusComment.generateMessage(room.getId(), forwardComment.getMessage());
+                    qiscusComment = QMessage.generateMessage(room.getId(), forwardComment.getText());
                 }
                 resendComment(qiscusComment);
             }, i * 100);
@@ -723,8 +755,8 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
 
     private void clearUnreadCount() {
         room.setUnreadCount(0);
-        room.setLastComment(null);
-        QiscusCore.getDataStore().addOrUpdate(room);
+        room.setLastMessage(null);
+        Const.qiscusCore().getDataStore().addOrUpdate(room);
     }
 
     public void detachView() {
@@ -734,19 +766,19 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
         EventBus.getDefault().unregister(this);
     }
 
-    public void deleteCommentsForEveryone(List<QiscusComment> comments) {
+    public void deleteCommentsForEveryone(List<QMessage> comments) {
         deleteComments(comments);
     }
 
     /**
      * @param comments
      */
-    private void deleteComments(List<QiscusComment> comments) {
+    private void deleteComments(List<QMessage> comments) {
         view.showDeleteLoading();
         Observable.from(comments)
-                .map(QiscusComment::getUniqueId)
+                .map(QMessage::getUniqueId)
                 .toList()
-                .flatMap(uniqueIds -> QiscusApi.getInstance().deleteMessages(uniqueIds))
+                .flatMap(uniqueIds -> Const.qiscusCore().getApi().deleteMessages(uniqueIds))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(bindToLifecycle())
@@ -773,9 +805,9 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
     }
 
     @Override
-    public void onChatRoomMemberAdded(QiscusRoomMember member) {
-        if (!room.getMember().contains(member)) {
-            room.getMember().add(member);
+    public void onChatRoomMemberAdded(QParticipant member) {
+        if (!room.getParticipants().contains(member)) {
+            room.getParticipants().add(member);
             QiscusAndroidUtil.runOnUIThread(() -> {
                 if (view != null) {
                     view.onRoomChanged(room);
@@ -785,10 +817,10 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
     }
 
     @Override
-    public void onChatRoomMemberRemoved(QiscusRoomMember member) {
-        int x = room.getMember().indexOf(member);
+    public void onChatRoomMemberRemoved(QParticipant member) {
+        int x = room.getParticipants().indexOf(member);
         if (x >= 0) {
-            room.getMember().remove(x);
+            room.getParticipants().remove(x);
             QiscusAndroidUtil.runOnUIThread(() -> {
                 if (view != null) {
                     view.onRoomChanged(room);
@@ -834,25 +866,25 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
 
         void showDeleteLoading();
 
-        void initRoomData(QiscusChatRoom qiscusChatRoom, List<QiscusComment> comments);
+        void initRoomData(QChatRoom qiscusChatRoom, List<QMessage> comments);
 
-        void onRoomChanged(QiscusChatRoom qiscusChatRoom);
+        void onRoomChanged(QChatRoom qiscusChatRoom);
 
-        void showComments(List<QiscusComment> qiscusComments);
+        void showComments(List<QMessage> qiscusComments);
 
-        void onLoadMore(List<QiscusComment> qiscusComments);
+        void onLoadMore(List<QMessage> qiscusComments);
 
-        void onSendingComment(QiscusComment qiscusComment);
+        void onSendingComment(QMessage qiscusComment);
 
-        void onSuccessSendComment(QiscusComment qiscusComment);
+        void onSuccessSendComment(QMessage qiscusComment);
 
-        void onFailedSendComment(QiscusComment qiscusComment);
+        void onFailedSendComment(QMessage qiscusComment);
 
-        void onNewComment(QiscusComment qiscusComment);
+        void onNewComment(QMessage qiscusComment);
 
-        void onCommentDeleted(QiscusComment qiscusComment);
+        void onCommentDeleted(QMessage qiscusComment);
 
-        void refreshComment(QiscusComment qiscusComment);
+        void refreshComment(QMessage qiscusComment);
 
         void notifyDataChanged();
 
@@ -862,11 +894,11 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
 
         void onFileDownloaded(File file, String mimeType);
 
-        void startPhotoViewer(QiscusComment qiscusComment);
+        void startPhotoViewer(QMessage qiscusComment);
 
         void onUserTyping(String user, boolean typing);
 
-        void showCommentsAndScrollToTop(List<QiscusComment> qiscusComments);
+        void showCommentsAndScrollToTop(List<QMessage> qiscusComments);
 
         void onRealtimeStatusChanged(boolean connected);
 
