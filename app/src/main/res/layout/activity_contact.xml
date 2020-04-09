@@ -106,13 +106,6 @@
 
     </LinearLayout>
 
-    <androidx.appcompat.widget.SearchView
-        android:id="@+id/search_view_users"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:queryHint="Search username"
-        app:iconifiedByDefault="false" />
-
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

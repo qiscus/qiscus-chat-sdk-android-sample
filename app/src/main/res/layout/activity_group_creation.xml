@@ -73,26 +73,12 @@
         android:layout_below="@+id/toolbar"
         android:background="@color/qiscus_light_grey" />
 
-    <androidx.appcompat.widget.SearchView
-        android:id="@+id/search_view_users"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/line"
-        android:queryHint="Search username"
-        app:iconifiedByDefault="false" />
-
-    <View
-        android:id="@+id/line2"
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_below="@+id/search_view_users"
-        android:background="@color/qiscus_light_grey" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewSelected"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/line2"
+        android:layout_below="@+id/line"
         android:orientation="horizontal"
         android:scrollbars="horizontal"
         android:visibility="gone"

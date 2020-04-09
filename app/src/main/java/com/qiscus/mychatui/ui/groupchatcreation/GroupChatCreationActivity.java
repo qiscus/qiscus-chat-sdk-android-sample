@@ -26,7 +26,6 @@ public class GroupChatCreationActivity extends AppCompatActivity implements Grou
     private ContactAdapter contactAdapter;
     private SelectedContactAdapter selectedContactAdapter;
     private ImageView imgNext;
-    private SearchView searchView;
 
     private GroupChatCreationPresenter presenter;
 
@@ -40,7 +39,6 @@ public class GroupChatCreationActivity extends AppCompatActivity implements Grou
         contactRecyclerView.setHasFixedSize(true);
 
         imgNext = findViewById(R.id.img_next);
-        searchView = (SearchView) findViewById(R.id.search_view_users);
 
         contactAdapter = new ContactAdapter(this, position -> {
             presenter.selectContact(contactAdapter.getData().get(position));
@@ -82,23 +80,6 @@ public class GroupChatCreationActivity extends AppCompatActivity implements Grou
             @Override
             public void onClick(View view) {
                 finish();
-            }
-        });
-
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                query = query.toLowerCase();
-                presenter.search(1, query);
-                searchView.clearFocus();
-                return true;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                newText = newText.toLowerCase();
-                presenter.search(1, newText);
-                return true;
             }
         });
 

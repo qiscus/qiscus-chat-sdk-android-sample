@@ -32,7 +32,6 @@ import java.util.List;
 public class ContactActivity extends AppCompatActivity implements ContactPresenter.View, OnItemClickListener {
     private RecyclerView recyclerView;
     private ContactAdapter contactAdapter;
-    private SearchView searchView;
     private LinearLayout llCreateGroupChat;
 
     private ContactPresenter contactPresenter;
@@ -43,7 +42,6 @@ public class ContactActivity extends AppCompatActivity implements ContactPresent
         setContentView(R.layout.activity_contact);
 
         findViewById(R.id.back).setOnClickListener(v -> onBackPressed());
-        searchView = (SearchView) findViewById(R.id.search_view_users);
         recyclerView = findViewById(R.id.recyclerview);
         llCreateGroupChat = findViewById(R.id.ll_create_group_chat);
 
@@ -62,23 +60,6 @@ public class ContactActivity extends AppCompatActivity implements ContactPresent
             @Override
             public void onClick(View view) {
                 createGroupChat();
-            }
-        });
-
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                query = query.toLowerCase();
-                contactPresenter.search(query);
-                searchView.clearFocus();
-                return true;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                newText = newText.toLowerCase();
-                contactPresenter.search(newText);
-                return true;
             }
         });
 

@@ -73,19 +73,11 @@
         android:layout_below="@+id/toolbar"
         android:background="@color/qiscus_light_grey" />
 
-    <androidx.appcompat.widget.SearchView
-        android:id="@+id/search_view_users"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/line"
-        android:queryHint="Search username"
-        app:iconifiedByDefault="false" />
-
     <TextView
         android:id="@+id/tv_contact"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/search_view_users"
+        android:layout_below="@id/line"
         android:background="@color/qiscus_white_grey"
         android:padding="8dp"
         android:text="Contacts"
