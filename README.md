@@ -4,15 +4,15 @@ This repo is aimed to give an example on how to build a chat UI using Qiscus Cha
 
 ## Screenshot
 
-<img src="https://user-images.githubusercontent.com/56247115/78863335-83cfb500-7a63-11ea-852d-d3c546b0d4d9.jpg" alt="Conversation" width="240"/>
+<img src="https://user-images.githubusercontent.com/56247115/78869105-36a51080-7a6e-11ea-848e-ef3d84ec9725.png" alt="Conversation" width="240"/>
 
-<img src="https://user-images.githubusercontent.com/56247115/78863345-8a5e2c80-7a63-11ea-9339-c1bb4a83dcbc.jpg" alt="Chat Room" width="240"/>
+<img src="https://user-images.githubusercontent.com/56247115/78869098-3278f300-7a6e-11ea-9953-8080d0b7d6bb.png" alt="Chat Room" width="240"/>
 
-<img src="https://user-images.githubusercontent.com/56247115/78863352-8df1b380-7a63-11ea-9365-f8e5ad48ccf0.jpg" alt="Group Chat Room" width="240"/>
+<img src="https://user-images.githubusercontent.com/56247115/78872512-981bae00-7a73-11ea-906e-00ab0f05eeda.png" alt="Group Chat Room" width="240"/>
 
-<img src="https://user-images.githubusercontent.com/56247115/78863362-921dd100-7a63-11ea-85e2-e4cdaf713ebc.jpg" alt="Group Participants" width="240"/>
+<img src="https://user-images.githubusercontent.com/56247115/78869121-3e64b500-7a6e-11ea-866f-5ed470ad3149.png" alt="Group Participants" width="240"/>
 
-<img src="https://user-images.githubusercontent.com/56247115/78863366-9813b200-7a63-11ea-9539-c7861f4a2511.jpg" alt="Create New Conversation" width="240"/>
+<img src="https://user-images.githubusercontent.com/56247115/78869131-41f83c00-7a6e-11ea-8543-951890cfef91.png" alt="Create New Conversation" width="240"/>
 
 ## Requirements
 
