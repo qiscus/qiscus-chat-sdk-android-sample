@@ -43,7 +43,9 @@ public class LoginActivity extends AppCompatActivity implements LoginPresenter.V
         LoginPresenter loginPresenter = new LoginPresenter(this,
                 MyApplication.getInstance().getComponent().getUserRepository());
 
-        loginPresenter.start();
+        if (Const.qiscusCore1().hasSetupUser()) {
+            loginPresenter.start();
+        }
 
         loginButton.setOnClickListener(v -> {
             if (TextUtils.isEmpty(userId.getText().toString())) {

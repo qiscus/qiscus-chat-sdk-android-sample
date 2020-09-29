@@ -383,7 +383,7 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QMessage, Comment
             super.bind(comment);
 
             try {
-                JSONObject obj = comment.getPayload();
+                JSONObject obj = new JSONObject(comment.getPayload());
                 String url = obj.getString("url");
                 String caption = obj.getString("caption");
                 String filename = obj.getString("file_name");
@@ -529,7 +529,7 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QMessage, Comment
             }
 
             try {
-                JSONObject obj = comment.getPayload();
+                JSONObject obj =  new JSONObject (comment.getPayload());
                 String url = obj.getString("url");
                 String filename = obj.getString("file_name");
                 fileName.setText(filename);
