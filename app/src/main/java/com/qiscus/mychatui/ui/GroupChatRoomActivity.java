@@ -11,6 +11,8 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 
 import com.bumptech.glide.request.RequestOptions;
 import com.qiscus.mychatui.R;
@@ -23,8 +25,6 @@ import com.qiscus.sdk.chat.core.data.remote.QiscusApi;
 
 import java.util.List;
 
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
 
 /**
  * Created on : January 30, 2018

@@ -11,9 +11,10 @@ import com.qiscus.sdk.chat.core.data.remote.QiscusApi;
 import java.util.ArrayList;
 import java.util.List;
 
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+import io.reactivex.Scheduler;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
+import io.reactivex.Observable;
 
 /**
  * Created on : January 31, 2018
@@ -25,7 +26,7 @@ public class ChatRoomRepositoryImpl implements ChatRoomRepository {
 
     @Override
     public void getChatRooms(Action<List<QiscusChatRoom>> onSuccess, Action<Throwable> onError) {
-        Observable.from(QiscusCore.getDataStore().getChatRooms(100))
+        Observable.fromIterable(QiscusCore.getDataStore().getChatRooms(100))
                 .filter(chatRoom -> chatRoom.getLastComment() != null)
                 .toList()
                 .subscribeOn(Schedulers.io())
@@ -34,7 +35,7 @@ public class ChatRoomRepositoryImpl implements ChatRoomRepository {
 
         QiscusApi.getInstance()
                 .getAllChatRooms(true, false, true, 1, 100)
-                .flatMap(Observable::from)
+                .flatMap(Observable::fromIterable)
                 .doOnNext(qiscusChatRoom -> QiscusCore.getDataStore().addOrUpdate(qiscusChatRoom))
                 .filter(chatRoom -> chatRoom.getLastComment().getId() != 0)
                 .toList()

@@ -5,6 +5,9 @@ import android.content.Context;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
+
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,9 +34,6 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.util.List;
-
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
 
 /**
  * Created on : January 31, 2018

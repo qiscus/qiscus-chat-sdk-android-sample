@@ -24,11 +24,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import io.reactivex.Observable;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 import rx.Emitter;
-import rx.Observable;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
-
 /**
  * Created on : January 30, 2018
  * Author     : zetbaitsu
@@ -63,15 +62,13 @@ public class UserRepositoryImpl implements UserRepository {
     @Override
     public void getCurrentUser(Action<User> onSuccess, Action<Throwable> onError) {
         getCurrentUserObservable()
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(onSuccess::call, onError::call);
     }
 
     @Override
     public void getUsers(long page, int limit, String searchUsername, Action<List<User>> onSuccess, Action<Throwable> onError) {
         QiscusApi.getInstance().getUsers(searchUsername, page, limit)
-                .flatMap(Observable::from)
+                .flatMap(Observable::fromIterable)
                 .filter(user -> !user.equals(getCurrentUser()))
                 .filter(user -> !user.getUsername().equals(""))
                 .map(this::mapFromQiscusAccount)
@@ -79,7 +76,6 @@ public class UserRepositoryImpl implements UserRepository {
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(onSuccess::call, onError::call);
-
     }
 
     @Override
@@ -111,9 +107,9 @@ public class UserRepositoryImpl implements UserRepository {
             } catch (Exception e) {
                 subscriber.onError(e);
             } finally {
-                subscriber.onCompleted();
+                subscriber.onComplete();
             }
-        }, Emitter.BackpressureMode.BUFFER);
+        });
     }
 
     private User getCurrentUser() {
@@ -134,20 +130,6 @@ public class UserRepositoryImpl implements UserRepository {
         sharedPreferences.edit()
                 .putString("current_device_token", token)
                 .apply();
-    }
-
-    private Observable<List<User>> getUsersObservable() {
-        return Observable.create(subscriber -> {
-            try {
-                List<User> users = gson.fromJson(getUsersData(), new TypeToken<List<User>>() {
-                }.getType());
-                subscriber.onNext(users);
-            } catch (Exception e) {
-                subscriber.onError(e);
-            } finally {
-                subscriber.onCompleted();
-            }
-        }, Emitter.BackpressureMode.BUFFER);
     }
 
     private String getUsersData() throws IOException, JSONException {

@@ -12,8 +12,8 @@ import com.qiscus.mychatui.R;
 import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
 import com.qiscus.sdk.chat.core.data.remote.QiscusApi;
 
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 
 public class EditRoomNameActivity extends AppCompatActivity {
     private static final String CHAT_ROOM_KEY = "extra_chat_room";
