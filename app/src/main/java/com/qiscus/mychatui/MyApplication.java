@@ -53,16 +53,16 @@ public class MyApplication extends MultiDexApplication {
 //                .setEnableFcmPushNotification(true);
 
         qiscusCore1 = new QiscusCore();
-        qiscusCore1.setup(this, QISCUS_SDK_APP_ID);
+        qiscusCore1.setup(this, QISCUS_SDK_APP_ID, "user1");
         qiscusCore1.getChatConfig()
                 .enableDebugMode(true)
                 .setNotificationListener(PushNotificationUtil::showNotification)
                 .setEnableFcmPushNotification(true);
 
         qiscusCore2 = new QiscusCore();
-//        qiscusCore2.setup(this, QISCUS_SDK_APP_ID2);
-        qiscusCore2.setupWithCustomServer(this, "dragongo", "https://dragongo.qiscus.com",
-                "ssl://realtime-stage.qiscus.com:1885", null);
+        qiscusCore2.setup(this, QISCUS_SDK_APP_ID2, "user2");
+//        qiscusCore2.setupWithCustomServer(this, "dragongo", "https://dragongo.qiscus.com",
+//                "ssl://realtime-stage.qiscus.com:1885", null, "user2");
         qiscusCore2.getChatConfig()
                 .enableDebugMode(true)
                 .setNotificationListener(PushNotificationUtil::showNotification)

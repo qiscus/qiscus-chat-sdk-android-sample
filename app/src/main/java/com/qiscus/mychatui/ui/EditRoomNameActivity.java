@@ -3,6 +3,9 @@ package com.qiscus.mychatui.ui;
 import android.content.Context;
 import android.content.Intent;
 import androidx.appcompat.app.AppCompatActivity;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
+
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -12,8 +15,6 @@ import com.qiscus.mychatui.R;
 import com.qiscus.mychatui.util.Const;
 import com.qiscus.sdk.chat.core.data.model.QChatRoom;
 
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
 
 public class EditRoomNameActivity extends AppCompatActivity {
     private static final String CHAT_ROOM_KEY = "extra_chat_room";

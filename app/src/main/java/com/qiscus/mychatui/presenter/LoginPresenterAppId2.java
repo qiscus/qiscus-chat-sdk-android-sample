@@ -6,8 +6,9 @@ import com.qiscus.mychatui.data.source.UserRepository;
 import com.qiscus.mychatui.util.AvatarUtil;
 import com.qiscus.mychatui.util.Const;
 
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
+
 
 /**
  * Created on : January 30, 2018

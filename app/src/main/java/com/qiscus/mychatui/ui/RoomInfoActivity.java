@@ -40,8 +40,8 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import id.zelory.compressor.Compressor;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
 
 public class RoomInfoActivity extends AppCompatActivity implements OnItemClickListener, QiscusApi.MetaRoomParticipantsListener {
     protected static final int TAKE_PICTURE_REQUEST = 3;

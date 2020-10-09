@@ -3,8 +3,9 @@ package com.qiscus.mychatui.presenter;
 import com.qiscus.mychatui.util.Const;
 import com.qiscus.sdk.chat.core.data.model.QChatRoom;
 
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.schedulers.Schedulers;
+
 
 public class StartChatWithPresenter {
 

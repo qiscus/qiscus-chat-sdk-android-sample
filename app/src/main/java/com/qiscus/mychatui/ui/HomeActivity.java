@@ -75,14 +75,6 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
             @Override
             public void onClick(View view) {
                 startActivity(new Intent(HomeActivity.this, ContactActivity.class));
-//                Const.qiscusCore().getApi().chatUser("s@mail.com", null)
-//                        .subscribeOn(Schedulers.io())
-//                        .observeOn(AndroidSchedulers.mainThread())
-//                        .subscribe(qiscusChatRoom -> {
-//                            startActivity(ChatRoomActivity.generateIntent(HomeActivity.this, qiscusChatRoom));
-//                        }, throwable -> {
-//                            Log.e("cccc", "onClick: " + throwable);
-//                        });
             }
         });
 

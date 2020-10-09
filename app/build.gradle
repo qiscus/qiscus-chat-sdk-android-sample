@@ -46,8 +46,10 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'id.zelory:compressor:2.1.0'
     implementation 'androidx.multidex:multidex:2.0.0'
-    implementation 'com.qiscus.sdk:chat-core:3.0.0-beta.7'
-//    implementation project(':chat-core')
+    implementation 'com.qiscus.sdk:chat-core:3.1.0-beta.1'
+
+    implementation 'io.reactivex.rxjava2:rxandroid:2.1.1'
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.19'
 
     implementation 'com.qiscus.utils:nirmana:1.2.1'
     implementation 'com.qiscus.utils:jupuk:1.1.4'
@@ -69,7 +71,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-core:17.2.2'
     implementation 'com.google.firebase:firebase-messaging:20.1.0'
 
-    implementation 'com.squareup.okhttp3:okhttp:3.12.0'
+    implementation 'com.squareup.okhttp3:okhttp:3.12.5'
     implementation 'com.squareup.retrofit2:retrofit:2.5.0'
 
     implementation 'androidx.constraintlayout:constraintlayout:1.1.2'

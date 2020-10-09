@@ -34,9 +34,9 @@ import java.io.File;
 import java.io.IOException;
 
 import id.zelory.compressor.Compressor;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 
 public class ProfileActivity extends AppCompatActivity implements ProfilePresenter.View {
     protected static final int TAKE_PICTURE_REQUEST = 3;
@@ -269,7 +269,7 @@ public class ProfileActivity extends AppCompatActivity implements ProfilePresent
             return;
         }
 
-        Subscription subscription = Const.qiscusCore().getApi()
+        Disposable subscription = Const.qiscusCore().getApi()
                 .upload(compressedFile, percentage ->
                 {
                     //show percentage
