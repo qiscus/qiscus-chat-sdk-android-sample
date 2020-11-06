@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -17,6 +18,7 @@ import com.qiscus.mychatui.ui.fragment.ChatRoomFragment;
 import com.qiscus.nirmana.Nirmana;
 import com.qiscus.sdk.chat.core.QiscusCore;
 import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
+import com.qiscus.sdk.chat.core.data.model.QiscusComment;
 import com.qiscus.sdk.chat.core.data.model.QiscusRoomMember;
 import com.qiscus.sdk.chat.core.data.remote.QiscusPusherApi;
 import com.qiscus.sdk.chat.core.event.QiscusUserStatusEvent;
@@ -33,14 +35,14 @@ import rx.Observable;
  * Name       : Zetra
  * GitHub     : https://github.com/zetbaitsu
  */
-public class ChatRoomActivity extends AppCompatActivity implements ChatRoomFragment.UserTypingListener {
+public class ChatRoomActivity extends AppCompatActivity implements ChatRoomFragment.UserTypingListener, ChatRoomFragment.CommentSelectedListener {
     private static final String CHAT_ROOM_KEY = "extra_chat_room";
 
-    private TextView tvSubtitle;
+    private TextView tvSubtitle, tvTitle;
     private QiscusChatRoom chatRoom;
     private String opponentEmail;
-    private LinearLayout linTitleSubtitle;
-
+    private ImageButton btn_action_copy, btn_action_delete, btn_action_reply, btn_action_reply_cancel;
+    private LinearLayout toolbar_selected_comment;
     public static Intent generateIntent(Context context, QiscusChatRoom chatRoom) {
         Intent intent = new Intent(context, ChatRoomActivity.class);
         intent.putExtra(CHAT_ROOM_KEY, chatRoom);
@@ -59,10 +61,14 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatRoomFragm
         }
 
         ImageView avatar = findViewById(R.id.avatar);
-        TextView roomName = findViewById(R.id.room_name);
-        ImageView btBack = findViewById(R.id.bt_back);
+        ImageButton btBack = findViewById(R.id.btn_back);
         tvSubtitle = findViewById(R.id.subtitle);
-        linTitleSubtitle = findViewById(R.id.linTitleSubtile);
+        tvTitle = findViewById(R.id.tvTitle);
+        btn_action_copy = findViewById(R.id.btn_action_copy);
+        btn_action_delete = findViewById(R.id.btn_action_delete);
+        btn_action_reply = findViewById(R.id.btn_action_reply);
+        btn_action_reply_cancel = findViewById(R.id.btn_action_reply_cancel);
+        toolbar_selected_comment = findViewById(R.id.toolbar_selected_comment);
 
         Nirmana.getInstance().get()
                 .setDefaultRequestOptions(new RequestOptions()
@@ -71,7 +77,6 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatRoomFragm
                         .dontAnimate())
                 .load(chatRoom.getAvatarUrl())
                 .into(avatar);
-        roomName.setText(chatRoom.getName());
 
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container,
@@ -83,12 +88,19 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatRoomFragm
 
         listenUser();
 
+        tvTitle.setText(chatRoom.getName());
+
         btBack.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 onBackPressed();
             }
         });
+
+        btn_action_copy.setOnClickListener(view -> getChatFragment().copyComment());
+        btn_action_delete.setOnClickListener(view -> getChatFragment().deleteComment());
+        btn_action_reply.setOnClickListener(view -> getChatFragment().replyComment());
+        btn_action_reply_cancel.setOnClickListener(view -> getChatFragment().clearSelectedComment());
     }
 
     private void getOpponentIfNotGroupEmail() {
@@ -100,6 +112,10 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatRoomFragm
                     .toBlocking()
                     .single();
         }
+    }
+
+    private ChatRoomFragment getChatFragment() {
+        return (ChatRoomFragment) getSupportFragmentManager().findFragmentById(R.id.fragment_container);
     }
 
     @Override
@@ -143,5 +159,26 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatRoomFragm
     public void onUserTyping(String user, boolean typing) {
         tvSubtitle.setText(typing ? "Typing..." : "Online");
         tvSubtitle.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void onCommentSelected(QiscusComment selectedComment) {
+        if (toolbar_selected_comment.getVisibility() == View.VISIBLE) {
+            toolbar_selected_comment.setVisibility(View.GONE);
+            getChatFragment().clearSelectedComment();
+        } else {
+            if (selectedComment.isMyComment()) {
+                btn_action_delete.setVisibility(View.VISIBLE);
+            } else {
+                btn_action_delete.setVisibility(View.GONE);
+            }
+
+            toolbar_selected_comment.setVisibility(View.VISIBLE);
+        }
+    }
+
+    @Override
+    public void onClearSelectedComment(Boolean status) {
+        toolbar_selected_comment.setVisibility(View.INVISIBLE);
     }
 }

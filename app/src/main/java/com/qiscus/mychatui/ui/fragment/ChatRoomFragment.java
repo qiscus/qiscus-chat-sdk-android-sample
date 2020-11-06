@@ -2,6 +2,8 @@ package com.qiscus.mychatui.ui.fragment;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -20,6 +22,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -39,6 +42,7 @@ import com.qiscus.mychatui.ui.adapter.CommentsAdapter;
 import com.qiscus.mychatui.ui.view.QiscusChatScrollListener;
 import com.qiscus.mychatui.util.QiscusImageUtil;
 import com.qiscus.mychatui.util.QiscusPermissionsUtil;
+import com.qiscus.nirmana.Nirmana;
 import com.qiscus.sdk.chat.core.QiscusCore;
 import com.qiscus.sdk.chat.core.data.local.QiscusCacheManager;
 import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
@@ -86,12 +90,12 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
             "android.permission.READ_EXTERNAL_STORAGE",
     };
     private EditText messageField;
-    private ImageView sendButton;
-    private ImageView attachImageButton;
+    private ImageView sendButton, attachImageButton, originImage, btnCancelReply;
     private ProgressBar progressBar;
     private RecyclerView recyclerView;
     private CommentsAdapter commentsAdapter;
-    private LinearLayout emptyChat, linAttachment, linTakePhoto, linImageGallery, linFileDocument, linCancel;
+    private LinearLayout emptyChat, linAttachment, linTakePhoto, linImageGallery, linFileDocument, linCancel, rootViewSender;
+    private TextView originSender, originContent;
 
     private QiscusChatPresenter chatPresenter;
 
@@ -100,6 +104,9 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
     private UserTypingListener userTypingListener;
     private boolean typing;
     private Runnable stopTypingNotifyTask;
+
+    private QiscusComment selectedComment = null;
+    private CommentSelectedListener commentSelectedListener = null;
 
     public static ChatRoomFragment newInstance(QiscusChatRoom chatRoom) {
         ChatRoomFragment chatRoomFragment = new ChatRoomFragment();
@@ -124,8 +131,11 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
         linImageGallery = view.findViewById(R.id.linImageGallery);
         linFileDocument = view.findViewById(R.id.linFileDocument);
         linCancel = view.findViewById(R.id.linCancel);
-
-
+        rootViewSender = view.findViewById(R.id.rootViewSender);
+        originSender = view.findViewById(R.id.originSender);
+        originImage = view.findViewById(R.id.originImage);
+        originContent = view.findViewById(R.id.originContent);
+        btnCancelReply = view.findViewById(R.id.btnCancelReply);
         return view;
     }
 
@@ -163,8 +173,25 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
 
         sendButton.setOnClickListener(v -> {
             if (!TextUtils.isEmpty(messageField.getText())) {
-                chatPresenter.sendComment(messageField.getText().toString());
+                if (rootViewSender.getVisibility() == View.VISIBLE) {
+                    if (selectedComment != null) {
+                        chatPresenter.sendReplyComment(messageField.getText().toString(), selectedComment);
+                    }
+
+                    rootViewSender.setVisibility(View.GONE);
+                    selectedComment = null;
+                } else {
+                    chatPresenter.sendComment(messageField.getText().toString());
+                }
+
                 messageField.setText("");
+            }
+        });
+
+        btnCancelReply.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                rootViewSender.setVisibility(View.GONE);
             }
         });
 
@@ -263,35 +290,124 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
 
             @Override
             public void onItemLongClick(View view, int position) {
-                AlertDialog.Builder builder1 = new AlertDialog.Builder(getActivity());
-                builder1.setMessage("Sure to delete this message??");
-                builder1.setCancelable(true);
-
-                builder1.setPositiveButton(
-                        "Yes",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                chatPresenter.deleteComment(commentsAdapter.getData().get(position));
-                                dialog.cancel();
-                            }
-                        });
-
-                builder1.setNegativeButton(
-                        "Cancel",
-                        new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int id) {
-                                dialog.cancel();
-                            }
-                        });
-
-                AlertDialog alert11 = builder1.create();
-                alert11.show();
-
+                toggleSelectedComment(commentsAdapter.getData().get(position));
             }
         });
 
         chatPresenter = new QiscusChatPresenter(this, chatRoom);
         chatPresenter.loadComments(20);
+    }
+
+    public void toggleSelectedComment(QiscusComment comment) {
+        if (comment.getType() != QiscusComment.Type.SYSTEM_EVENT || comment.getType() != QiscusComment.Type.CARD) {
+            comment.setSelected(true);
+            commentsAdapter.addOrUpdate(comment);
+            commentsAdapter.setSelectedComment(comment);
+            if (commentSelectedListener != null) {
+                commentSelectedListener.onCommentSelected(comment);
+            }
+
+        }
+    }
+
+     public void replyComment() {
+        clearSelectedComment();
+        selectedComment = commentsAdapter.getSelectedComment();
+        if (selectedComment == null) {
+            rootViewSender.setVisibility(View.GONE);
+        } else {
+            rootViewSender.setVisibility(View.VISIBLE);
+        }
+        
+        if (selectedComment != null) {
+            bindReplyView(selectedComment);
+        }
+    }
+
+    private void bindReplyView(QiscusComment origin) {
+        originSender.setText(origin.getSender());
+
+        if (origin.getType() == QiscusComment.Type.IMAGE) {
+            originImage.setVisibility(View.VISIBLE);
+            Nirmana.getInstance().get()
+                    .load(origin.getAttachmentUri())
+                    .into(originImage);
+            originContent.setText(origin.getCaption());
+        } else if (origin.getType() == QiscusComment.Type.FILE) {
+            originContent.setText(origin.getAttachmentName());
+            originImage.setVisibility(View.GONE);
+        } else {
+            originImage.setVisibility(View.GONE);
+            originContent.setText(origin.getMessage());
+        }
+    }
+
+
+    public void deleteComment() {
+        clearSelectedComment();
+
+        QiscusComment selectedComment = commentsAdapter.getSelectedComment();
+
+        if (selectedComment != null) {
+            showDialogDeleteComment(selectedComment);
+        }
+    }
+
+    private void showDialogDeleteComment(QiscusComment qiscusComment) {
+        AlertDialog.Builder builder1 = new AlertDialog.Builder(getActivity());
+        builder1.setMessage("Sure to delete this message??");
+        builder1.setCancelable(true);
+
+        builder1.setPositiveButton(
+                "Yes",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        chatPresenter.deleteComment(qiscusComment);
+                        dialog.cancel();
+                    }
+                });
+
+        builder1.setNegativeButton(
+                "Cancel",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        dialog.cancel();
+                    }
+                });
+
+        AlertDialog alert11 = builder1.create();
+        alert11.show();
+    }
+
+    public void clearSelectedComment() {
+        commentSelectedListener.onClearSelectedComment(true);
+        commentsAdapter.clearSelected();
+    }
+
+    public void copyComment() {
+        clearSelectedComment();
+
+        QiscusComment
+                commentSelected = commentsAdapter.getSelectedComment();
+
+        String textCopied = "";
+
+        if (commentSelected.getType() == QiscusComment.Type.FILE) {
+            textCopied = commentSelected.getAttachmentName();
+        } else if (commentSelected.getType() == QiscusComment.Type.IMAGE) {
+            textCopied =  commentSelected.getCaption();
+        } else {
+            textCopied = commentSelected.getMessage();
+        }
+
+        ClipboardManager clipboard = (ClipboardManager) getContext().getSystemService(Context.CLIPBOARD_SERVICE);
+        ClipData clip = ClipData.newPlainText(
+                "Message",
+                textCopied
+        );
+        clipboard.setPrimaryClip(clip);
+
+        Toast.makeText(getContext(), "messages copied!", Toast.LENGTH_SHORT).show();
     }
 
     private void hideAttachmentPanel() {
@@ -315,7 +431,9 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
     @Override
     public void onAttach(Context context) {
         super.onAttach(context);
-        if (getActivity() instanceof UserTypingListener) {
+
+        if (getActivity() instanceof CommentSelectedListener) {
+            commentSelectedListener = (CommentSelectedListener) getActivity();
             userTypingListener = (UserTypingListener) getActivity();
         }
     }
@@ -620,6 +738,11 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
         super.onDestroyView();
         notifyLatestRead();
         chatPresenter.detachView();
+    }
+
+    public interface CommentSelectedListener {
+        void onCommentSelected(QiscusComment selectedComment);
+        void onClearSelectedComment(Boolean status);
     }
 
     public interface UserTypingListener {

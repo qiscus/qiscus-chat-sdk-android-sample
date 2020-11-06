@@ -3,8 +3,16 @@ package com.qiscus.mychatui.ui.adapter;
 import android.content.Context;
 
 import androidx.annotation.Nullable;
+import androidx.browser.customtabs.CustomTabsIntent;
 import androidx.core.content.ContextCompat;
+import androidx.core.util.PatternsCompat;
 import androidx.recyclerview.widget.RecyclerView;
+
+import android.net.Uri;
+import android.text.Spannable;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ClickableSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,6 +29,7 @@ import com.qiscus.mychatui.util.DateUtil;
 import com.qiscus.mychatui.util.QiscusImageUtil;
 import com.qiscus.nirmana.Nirmana;
 import com.qiscus.sdk.chat.core.QiscusCore;
+import com.qiscus.sdk.chat.core.data.model.QiscusAccount;
 import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
 import com.qiscus.sdk.chat.core.data.model.QiscusComment;
 import com.qiscus.sdk.chat.core.data.remote.QiscusApi;
@@ -31,6 +40,7 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.util.List;
+import java.util.regex.Matcher;
 
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
@@ -49,11 +59,14 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
     private static final int TYPE_OPPONENT_IMAGE = 4;
     private static final int TYPE_MY_FILE = 5;
     private static final int TYPE_OPPONENT_FILE = 6;
+    private static final int TYPE_MY_REPLY = 7;
+    private static final int TYPE_OPPONENT_REPLY = 8;
 
 
     private Context context;
     private long lastDeliveredCommentId;
     private long lastReadCommentId;
+    private QiscusComment selectedComment = null;
 
     public CommentsAdapter(Context context) {
         this.context = context;
@@ -96,6 +109,8 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
                 return comment.isMyComment() ? TYPE_MY_IMAGE : TYPE_OPPONENT_IMAGE;
             case FILE:
                 return comment.isMyComment() ? TYPE_MY_FILE : TYPE_OPPONENT_FILE;
+            case REPLY:
+                return comment.isMyComment() ? TYPE_MY_REPLY : TYPE_OPPONENT_REPLY;
             default:
                 return comment.isMyComment() ? TYPE_MY_TEXT : TYPE_OPPONENT_TEXT;
         }
@@ -122,6 +137,9 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
             case TYPE_MY_FILE:
             case TYPE_OPPONENT_FILE:
                 return new FileVH(getView(parent, viewType));
+            case TYPE_MY_REPLY:
+            case TYPE_OPPONENT_REPLY:
+                return new ReplyVH(getView(parent, viewType));
             default:
                 return new TextVH(getView(parent, viewType));
         }
@@ -141,6 +159,10 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
                 return LayoutInflater.from(context).inflate(R.layout.item_my_file_comment, parent, false);
             case TYPE_OPPONENT_FILE:
                 return LayoutInflater.from(context).inflate(R.layout.item_opponent_file_comment, parent, false);
+            case TYPE_MY_REPLY :
+                return LayoutInflater.from(context).inflate(R.layout.item_my_reply_mc, parent, false);
+            case TYPE_OPPONENT_REPLY :
+                return LayoutInflater.from(context).inflate(R.layout.item_opponent_reply_mc, parent, false);
             default:
                 return LayoutInflater.from(context).inflate(R.layout.item_opponent_text_comment, parent, false);
         }
@@ -175,12 +197,30 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
         notifyDataSetChanged();
     }
 
+    public void setSelectedComment(QiscusComment comment){
+        this.selectedComment = comment;
+    }
+
+    public QiscusComment getSelectedComment(){
+        return selectedComment;
+    }
+
     public void addOrUpdate(QiscusComment comment) {
         int index = findPosition(comment);
         if (index == -1) {
             getData().add(comment);
         } else {
             getData().updateItemAt(index, comment);
+        }
+        notifyDataSetChanged();
+    }
+
+    public void clearSelected() {
+        int size = getData().size();
+        for (int i = 0; i< size; i++) {
+            if (getData().get(i).isSelected()) {
+                getData().get(i).setSelected(false);
+            }
         }
         notifyDataSetChanged();
     }
@@ -613,6 +653,148 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
                     }, throwable -> {
                         //on error
                     });
+        }
+    }
+
+    static class ReplyVH extends VH  {
+
+        private QiscusAccount qiscusAccount = QiscusCore.getQiscusAccount();
+        private TextView message, sender, origin_comment, dateOfMessage ;
+        private ImageView icon, origin_image;
+        ReplyVH(View itemView) {
+            super(itemView);
+            message = itemView.findViewById(R.id.message);
+            dateOfMessage = itemView.findViewById(R.id.dateOfMessage);
+            sender = itemView.findViewById(R.id.origin_sender);
+            origin_comment = itemView.findViewById(R.id.origin_comment);
+            icon = itemView.findViewById(R.id.icon);
+            origin_image = itemView.findViewById(R.id.origin_image);
+        }
+
+        @Override
+        void bind(QiscusComment comment) {
+            super.bind(comment);
+
+            QiscusComment origin = comment.getReplyTo();
+
+            if (qiscusAccount.getEmail().equals(origin.getSenderEmail())) {
+                sender.setText("You");
+            } else {
+                sender.setText(origin.getSender());
+            }
+
+            origin_comment.setText(origin.getMessage());
+            message.setText(comment.getMessage());
+            icon.setVisibility(View.VISIBLE);
+            setUpLinks();
+
+            if (origin.getType() == QiscusComment.Type.TEXT) {
+                origin_image.setVisibility(View.GONE);
+                icon.setVisibility(View.GONE);
+            } else if (origin.getType() == QiscusComment.Type.IMAGE) {
+                origin_image.setVisibility(View.VISIBLE);
+                icon.setImageResource(R.drawable.ic_gallery);
+
+                if (origin.getCaption() == "") {
+                    origin_comment.setText("Image");
+                } else {
+                    origin_comment.setText(origin.getCaption());
+                }
+
+                Nirmana.getInstance().get()
+                        .setDefaultRequestOptions(
+                                new RequestOptions()
+                                        .placeholder(R.drawable.ic_qiscus_avatar)
+                                        .error(R.drawable.ic_qiscus_avatar)
+                                        .dontAnimate()
+                        )
+                        .load(origin.getAttachmentUri())
+                        .into(origin_image);
+            } else if (origin.getType() == QiscusComment.Type.FILE) {
+                origin_image.setVisibility(View.GONE);
+                icon.setVisibility(View.VISIBLE);
+                origin_comment.setText(origin.getAttachmentName());
+                icon.setImageResource(R.drawable.ic_file);
+            } else {
+                origin_image.setVisibility(View.GONE);
+                icon.setVisibility(View.GONE);
+                origin_comment.setText(origin.getMessage());
+            }
+
+        }
+
+        private void setUpLinks() {
+            String messageData = message.getText().toString();
+            Matcher matcher = PatternsCompat.AUTOLINK_WEB_URL.matcher(messageData);
+            while (matcher.find()) {
+                int start = matcher.start();
+                if (start > 0 && messageData.charAt(start - 1) == '@') {
+                    continue;
+                }
+                int end = matcher.end();
+                clickify(start, end, () -> {
+                    String url = messageData.substring(start, end);
+                    if (!url.startsWith("http")) {
+                        url = "http://" + url;
+                    }
+                    new CustomTabsIntent.Builder()
+                            .setToolbarColor(ContextCompat.getColor(QiscusCore.getApps(), R.color.qiscus_white))
+                            .setShowTitle(true)
+                            .addDefaultShareMenuItem()
+                            .enableUrlBarHiding()
+                            .build()
+                            .launchUrl(message.getContext(), Uri.parse(url));
+                });
+            }
+        }
+
+        private void clickify(int start, int end, ClickSpan.OnClickListener listener) {
+            CharSequence text = message.getText();
+            ClickSpan span = new ClickSpan(listener);
+
+            if (start == -1) {
+                return;
+            }
+
+            if (text instanceof Spannable) {
+                ((Spannable) text).setSpan(span, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            } else {
+                SpannableString s = SpannableString.valueOf(text);
+                s.setSpan(span, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                message.setText(s);
+            }
+        }
+
+        private static class ClickSpan extends ClickableSpan {
+            private ClickSpan.OnClickListener listener;
+
+            public ClickSpan(ClickSpan.OnClickListener listener) {
+                this.listener = listener;
+            }
+
+            @Override
+            public void onClick(View widget) {
+                if (listener != null) {
+                    listener.onClick();
+                }
+            }
+
+            public interface OnClickListener {
+                void onClick();
+            }
+        }
+
+        @Override
+        void setNeedToShowDate(Boolean showDate) {
+            if (showDate == true) {
+                if (dateOfMessage != null) {
+                    dateOfMessage.setVisibility(View.VISIBLE);
+                }
+            } else {
+                if (dateOfMessage != null) {
+                    dateOfMessage.setVisibility(View.GONE);
+                }
+            }
         }
     }
 }
