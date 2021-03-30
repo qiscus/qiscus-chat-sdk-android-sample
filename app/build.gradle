@@ -44,7 +44,10 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'id.zelory:compressor:2.1.0'
     implementation 'androidx.multidex:multidex:2.0.0'
-    implementation 'com.qiscus.sdk:chat-core:1.3.11'
+    implementation 'com.qiscus.sdk:chat-core:1.3.28'
+    implementation 'com.qiscus.utils:nirmana:1.2.1'
+    implementation 'com.qiscus.utils:jupuk:1.1.4'
+
 
     /**
      * Image utils
