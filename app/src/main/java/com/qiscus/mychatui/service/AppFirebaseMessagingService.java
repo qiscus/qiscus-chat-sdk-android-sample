@@ -6,8 +6,7 @@ import androidx.annotation.NonNull;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.iid.InstanceIdResult;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.qiscus.mychatui.MyApplication;
@@ -39,10 +38,10 @@ public class AppFirebaseMessagingService extends FirebaseMessagingService {
     }
 
     public static void getCurrentDeviceToken() {
-        FirebaseInstanceId.getInstance().getInstanceId()
-                .addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(new OnCompleteListener<String>() {
                     @Override
-                    public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                    public void onComplete(@NonNull Task<String> task) {
                         if (!task.isSuccessful()) {
                             Log.e("Qiscus", "getCurrentDeviceToken Failed : " +
                                     task.getException());
@@ -50,7 +49,7 @@ public class AppFirebaseMessagingService extends FirebaseMessagingService {
                         }
 
                         if (task.getResult() != null) {
-                            String currentToken = task.getResult().getToken();
+                            String currentToken = task.getResult();
 
                             MyApplication.getInstance().getComponent().getUserRepository().
                                     setDeviceToken(currentToken);
