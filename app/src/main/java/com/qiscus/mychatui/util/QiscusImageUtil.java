@@ -29,6 +29,7 @@ import android.graphics.RectF;
 import android.media.ExifInterface;
 import android.media.ThumbnailUtils;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 
 import com.qiscus.sdk.chat.core.QiscusCore;
@@ -154,7 +155,13 @@ public final class QiscusImageUtil {
     public static File compressImage(File imageFile) {
 
         FileOutputStream out = null;
-        String filename = QiscusFileUtil.generateFilePath(imageFile.getName(), ".jpg");
+        String filename = "";
+        int androidVersion = Build.VERSION.SDK_INT;
+        if (androidVersion >= 30) {
+            filename =  QiscusFileUtil.generateFilePath(imageFile.getName(), ".jpg", Environment.DIRECTORY_PICTURES);
+        } else {
+            filename = QiscusFileUtil.generateFilePath(imageFile.getName(), ".jpg");
+        }
         try {
             out = new FileOutputStream(filename);
 
