@@ -6,7 +6,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.media.RingtoneManager;
-import android.util.Log;
+import android.os.Build;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -29,6 +29,7 @@ public final class PushNotificationUtil {
     }
 
     public static void showNotification(Context context, QMessage qiscusComment) {
+        // get AppId is Null
         if (qiscusComment.getAppId().equals(Const.qiscusCore1().getAppId())) {
             if (Const.qiscusCore1().getDataStore().isContains(qiscusComment)) {
                 return;
@@ -40,7 +41,7 @@ public final class PushNotificationUtil {
             }
             Const.qiscusCore2().getDataStore().addOrUpdate(qiscusComment);
         }
-
+        
         String notificationChannelId = Const.qiscusCore().getApps().getPackageName() + ".qiscus.sdk.notification.channel";
         if (BuildVersionUtil.isOreoOrHigher()) {
             NotificationChannel notificationChannel =
@@ -54,9 +55,16 @@ public final class PushNotificationUtil {
         PendingIntent pendingIntent;
         Intent openIntent = new Intent(context, NotificationClickReceiver.class);
         openIntent.putExtra("data", qiscusComment);
-        pendingIntent = PendingIntent.getBroadcast(context, QiscusNumberUtil.convertToInt(qiscusComment.getChatRoomId()),
-                openIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-
+        
+         /* PendingIntent.FLAG_IMMUTABLE to support android 12 */
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            pendingIntent = PendingIntent.getBroadcast(context, QiscusNumberUtil.convertToInt(qiscusComment.getChatRoomId()),
+                    openIntent, PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_CANCEL_CURRENT);
+        } else {
+            pendingIntent = PendingIntent.getBroadcast(context, QiscusNumberUtil.convertToInt(qiscusComment.getChatRoomId()),
+                    openIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+        }
+        
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context, notificationChannelId);
         notificationBuilder.setContentTitle(qiscusComment.getSender().getName())
                 .setContentIntent(pendingIntent)
@@ -67,7 +75,9 @@ public final class PushNotificationUtil {
                 .setGroup("CHAT_NOTIF_" + qiscusComment.getChatRoomId())
                 .setAutoCancel(true)
                 .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION));
-
+    
+        // get AppId is Null
+        /* temporary disable */
         if (qiscusComment.getAppId().equals(Const.qiscusCore1().getAppId())) {
             if (!qiscusComment.getSender().getId().equals(Const.qiscusCore1().getQiscusAccount().getId())) {
                 QiscusAndroidUtil.runOnUIThread(() -> NotificationManagerCompat.from(context)
@@ -79,5 +89,7 @@ public final class PushNotificationUtil {
                         .notify(QiscusNumberUtil.convertToInt(qiscusComment.getChatRoomId()), notificationBuilder.build()));
             }
         }
+    
     }
+    
 }
