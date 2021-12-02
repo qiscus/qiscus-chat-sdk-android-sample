@@ -248,7 +248,7 @@ public final class QiscusImageUtil {
     }
 
     public static File createImageFile() throws IOException {
-       if (androidVersion >= 29) {
+//       if (androidVersion >= 29) {
             String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
             String imageFileName = "JPEG_" + timeStamp + "_";
             File storageDir = QiscusCore.getApps().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
@@ -260,14 +260,14 @@ public final class QiscusImageUtil {
 
             QiscusCacheManager.getInstance().cacheLastImagePath("file:" + image.getAbsolutePath());
             return image;
-        } else {
-            String timeStamp = new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(new Date());
-            String imageFileName = "JPEG-" + timeStamp + "-";
-            File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-            File image = File.createTempFile(imageFileName, ".jpg", storageDir);
-            QiscusCacheManager.getInstance().cacheLastImagePath("file:" + image.getAbsolutePath());
-            return image;
-        }
+//        } else {
+//            String timeStamp = new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.US).format(new Date());
+//            String imageFileName = "JPEG-" + timeStamp + "-";
+//            File storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+//            File image = File.createTempFile(imageFileName, ".jpg", storageDir);
+//            QiscusCacheManager.getInstance().cacheLastImagePath("file:" + image.getAbsolutePath());
+//            return image;
+//        }
     }
 
     public static Bitmap getCircularBitmap(Bitmap bm) {
