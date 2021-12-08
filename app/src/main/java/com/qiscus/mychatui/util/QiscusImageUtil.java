@@ -248,6 +248,7 @@ public final class QiscusImageUtil {
     }
 
     public static File createImageFile() throws IOException {
+        int androidVersion = Build.VERSION.SDK_INT;
        if (androidVersion >= 29) {
             String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
             String imageFileName = "JPEG_" + timeStamp + "_";
