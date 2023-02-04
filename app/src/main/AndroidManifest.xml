@@ -20,7 +20,8 @@
         <activity android:name=".ui.RoomInfoActivity" />
         <activity android:name=".ui.EditNameActivity" />
         <activity android:name=".ui.ProfileActivity" />
-        <activity android:name=".ui.LoginActivity">
+        <activity android:name=".ui.LoginActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
