@@ -62,7 +62,7 @@ public final class PushNotificationUtil {
                 .setContentIntent(pendingIntent)
                 .setContentText(qiscusComment.getMessage())
                 .setTicker(qiscusComment.getMessage())
-                .setSmallIcon(R.drawable.ic_jupuk_play_icon)
+               // .setSmallIcon(R.drawable.ic_jupuk_play_icon)
                 .setColor(ContextCompat.getColor(context, R.color.colorAccent))
                 .setGroup("CHAT_NOTIF_" + qiscusComment.getRoomId())
                 .setAutoCancel(true)
