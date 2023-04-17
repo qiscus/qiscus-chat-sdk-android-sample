@@ -36,7 +36,7 @@ public class GroupChatCreationActivity extends AppCompatActivity implements Grou
 
         RecyclerView contactRecyclerView = findViewById(R.id.recyclerViewAlumni);
         contactRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        contactRecyclerView.setHasFixedSize(true);
+        //contactRecyclerView.setHasFixedSize(true);
 
         imgNext = findViewById(R.id.img_next);
 
@@ -48,7 +48,7 @@ public class GroupChatCreationActivity extends AppCompatActivity implements Grou
 
         selectedContactRecyclerView = findViewById(R.id.recyclerViewSelected);
         selectedContactRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        selectedContactRecyclerView.setHasFixedSize(true);
+        //selectedContactRecyclerView.setHasFixedSize(true);
 
         selectedContactAdapter = new SelectedContactAdapter(this, position -> {
             presenter.selectContact(selectedContactAdapter.getData().get(position));

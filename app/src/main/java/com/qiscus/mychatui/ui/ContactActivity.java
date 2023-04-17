@@ -46,7 +46,7 @@ public class ContactActivity extends AppCompatActivity implements ContactPresent
         llCreateGroupChat = findViewById(R.id.ll_create_group_chat);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setHasFixedSize(true);
+        //recyclerView.setHasFixedSize(true);
         contactAdapter = new ContactAdapter(this);
         contactAdapter.setOnItemClickListener(this);
         recyclerView.setAdapter(contactAdapter);

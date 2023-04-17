@@ -57,7 +57,7 @@ public class HomeActivity extends AppCompatActivity implements HomePresenter.Vie
 
         recyclerView = findViewById(R.id.recyclerview);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setHasFixedSize(true);
+        //recyclerView.setHasFixedSize(true);
         chatRoomAdapter = new ChatRoomAdapter(this);
         chatRoomAdapter.setOnItemClickListener(this);
 

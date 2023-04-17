@@ -108,7 +108,7 @@ public class QiscusSendPhotoConfirmationActivity extends RxAppCompatActivity imp
         messageEditText = findViewById(R.id.field_message);
 
         recyclerView = findViewById(R.id.recyclerview);
-        recyclerView.setHasFixedSize(true);
+       // recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
 
         photoAdapter = new QiscusPhotoAdapter(this);

@@ -94,7 +94,7 @@ public class GroupInfoFragment extends Fragment implements GroupInfoPresenter.Vi
         }
 
         recyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        recyclerView.setHasFixedSize(true);
+        //recyclerView.setHasFixedSize(true);
 
         adapter = new ContactAdapter(getActivity(), new OnItemClickListener() {
             @Override

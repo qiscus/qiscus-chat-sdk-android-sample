@@ -277,7 +277,7 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
         LinearLayoutManager layoutManager = new LinearLayoutManager(getActivity());
         layoutManager.setReverseLayout(true);
         recyclerView.setLayoutManager(layoutManager);
-        recyclerView.setHasFixedSize(true);
+        //recyclerView.setHasFixedSize(true);
         recyclerView.addOnScrollListener(new QiscusChatScrollListener(layoutManager, this));
         commentsAdapter = new CommentsAdapter(getActivity());
         recyclerView.setAdapter(commentsAdapter);
