@@ -48,7 +48,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'id.zelory:compressor:2.1.0'
     implementation 'androidx.multidex:multidex:2.0.1'
-    implementation 'com.qiscus.sdk:chat-core:1.6.3'
+    implementation 'com.qiscus.sdk:chat-core:1.6.4'
     implementation 'com.qiscus.utils:nirmana:1.3.0'
     implementation 'com.qiscus.utils:jupuk:1.5.5'
     implementation 'com.trello:rxlifecycle:1.0'
@@ -74,13 +74,7 @@ dependencies {
 
     implementation 'com.squareup.okhttp3:okhttp:3.12.0'
    // implementation 'com.squareup.retrofit2:retrofit:2.5.0'
-
-    //tricky hack agp 8 for retrofit2
-    implementation 'com.squareup.retrofit2:retrofit:2.10.0-SNAPSHOT'
-    implementation 'com.squareup.retrofit2:converter-scalars:2.1.0'
-    implementation 'com.squareup.retrofit2:converter-gson:2.10.0-SNAPSHOT'
-    implementation 'com.squareup.retrofit2:adapter-rxjava:2.10.0-SNAPSHOT'
-
+    
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.browser:browser:1.4.0'
     testImplementation 'junit:junit:4.12'
