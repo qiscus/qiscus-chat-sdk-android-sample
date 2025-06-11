@@ -34,7 +34,6 @@ import com.qiscus.sdk.chat.core.util.QiscusFileUtil;
 import java.io.File;
 import java.io.IOException;
 
-import id.zelory.compressor.Compressor;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
@@ -252,26 +251,15 @@ public class ProfileActivity extends AppCompatActivity implements ProfilePresent
     }
 
     public void updateAvatar(File file) {
-        File compressedFile = file;
-        if (QiscusFileUtil.isImage(file.getPath()) && !file.getName().endsWith(".gif")) {
-            try {
-                compressedFile = new Compressor(QiscusCore.getApps()).compressToFile(file);
-            } catch (NullPointerException | IOException e) {
-                Toast.makeText(this, "Can not read file, please make sure that is not corrupted file!", Toast.LENGTH_SHORT).show();
-                return;
-            }
-        } else {
-            compressedFile = QiscusFileUtil.saveFile(compressedFile);
-        }
-
-        if (!file.exists()) { //File have been removed, so we can not upload it anymore
+        if (!file.exists()) {
             Toast.makeText(this, "Can not read file, please make sure that is not corrupted file!", Toast.LENGTH_SHORT).show();
             return;
         }
 
+        File savedFile = QiscusFileUtil.saveFile(file);
+
         Subscription subscription = QiscusApi.getInstance()
-                .upload(compressedFile, percentage ->
-                {
+                .upload(savedFile, percentage -> {
                     //show percentage
                 })
                 .doOnError(throwable -> {
@@ -296,7 +284,6 @@ public class ProfileActivity extends AppCompatActivity implements ProfilePresent
                     throwable.printStackTrace();
                     Toast.makeText(this, "Failed to upload image!", Toast.LENGTH_SHORT).show();
                 });
-
     }
 
     @Override

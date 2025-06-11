@@ -41,8 +41,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import id.zelory.compressor.Compressor;
+ 
 import retrofit2.HttpException;
 import rx.Observable;
 import rx.Subscription;
