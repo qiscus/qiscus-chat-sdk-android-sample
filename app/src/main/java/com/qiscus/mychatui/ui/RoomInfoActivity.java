@@ -45,21 +45,10 @@ import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
 public class RoomInfoActivity extends AppCompatActivity implements OnItemClickListener, QiscusApi.MetaRoomParticipantsListener {
-    protected static final int TAKE_PICTURE_REQUEST = 3;
-    protected static final int RC_CAMERA_PERMISSION = 128;
+
     private static final String CHAT_ROOM_DATA = "chat_room_data";
     private static final int RC_ADD_PARTICIPANTS = 133;
-    private static final int REQUEST_PICK_IMAGE = 1;
-    private static final int REQUEST_FILE_PERMISSION = 2;
-    private static final String[] FILE_PERMISSION = {
-            "android.permission.WRITE_EXTERNAL_STORAGE",
-            "android.permission.READ_EXTERNAL_STORAGE"
-    };
-    private static final String[] CAMERA_PERMISSION = {
-            "android.permission.CAMERA",
-            "android.permission.WRITE_EXTERNAL_STORAGE",
-            "android.permission.READ_EXTERNAL_STORAGE",
-    };
+
     private QiscusChatRoom chatRoom;
     private TextView tvRoomName;
     private ImageView ivEditRoomName, ivEditAvatarRoom, ivAvatar, bt_back;
@@ -143,7 +132,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
                     @Override
                     public void onClick(View v) {
                         //gallery
-                        if (QiscusPermissionsUtil.hasPermissions(getApplication(), FILE_PERMISSION)) {
+                        if (QiscusPermissionsUtil.hasPermissions(getApplication(), QiscusPermissionsUtil.FILE_PERMISSION)) {
                             pickImage();
                             mPopupWindow.dismiss();
                         } else {
@@ -156,7 +145,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
                     @Override
                     public void onClick(View v) {
                         //camera
-                        if (QiscusPermissionsUtil.hasPermissions(getApplication(), CAMERA_PERMISSION)) {
+                        if (QiscusPermissionsUtil.hasPermissions(getApplication(), QiscusPermissionsUtil.CAMERA_PERMISSION)) {
                             Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                             if (intent.resolveActivity(getApplication().getPackageManager()) != null) {
                                 File photoFile = null;
@@ -173,7 +162,7 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
                                         intent.putExtra(MediaStore.EXTRA_OUTPUT,
                                                 FileProvider.getUriForFile(getApplication(), QiscusCore.getApps().getPackageName() + ".qiscus.sdk.provider", photoFile));
                                     }
-                                    startActivityForResult(intent, TAKE_PICTURE_REQUEST);
+                                    startActivityForResult(intent, QiscusPermissionsUtil.TAKE_PICTURE_REQUEST_CODE);
                                 }
                                 mPopupWindow.dismiss();
                             }
@@ -283,34 +272,34 @@ public class RoomInfoActivity extends AppCompatActivity implements OnItemClickLi
     private void pickImage() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
-        startActivityForResult(intent, REQUEST_PICK_IMAGE);
+        startActivityForResult(intent, QiscusPermissionsUtil.REQUEST_CODE_PICK_IMAGE);
     }
 
     private void requestReadFilePermission() {
-        if (!QiscusPermissionsUtil.hasPermissions(this, FILE_PERMISSION)) {
+        if (!QiscusPermissionsUtil.hasPermissions(this, QiscusPermissionsUtil.FILE_PERMISSION)) {
             QiscusPermissionsUtil.requestPermissions(this, getString(R.string.qiscus_permission_request_title),
-                    REQUEST_FILE_PERMISSION, FILE_PERMISSION);
+                    QiscusPermissionsUtil.REQUEST_CODE_PICK_FILE, QiscusPermissionsUtil.FILE_PERMISSION);
         }
     }
 
     protected void requestCameraPermission() {
-        if (!QiscusPermissionsUtil.hasPermissions(this, CAMERA_PERMISSION)) {
+        if (!QiscusPermissionsUtil.hasPermissions(this, QiscusPermissionsUtil.CAMERA_PERMISSION)) {
             QiscusPermissionsUtil.requestPermissions(this, getString(R.string.qiscus_permission_request_title),
-                    RC_CAMERA_PERMISSION, CAMERA_PERMISSION);
+                    QiscusPermissionsUtil.REQUEST_CODE_OPEN_CAMERA, QiscusPermissionsUtil.CAMERA_PERMISSION);
         }
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_PICK_IMAGE && resultCode == Activity.RESULT_OK) {
+        if (requestCode == QiscusPermissionsUtil.REQUEST_CODE_PICK_IMAGE && resultCode == Activity.RESULT_OK) {
             try {
                 File imageFile = QiscusFileUtil.from(data.getData());
                 updateAvatar(imageFile);
             } catch (Exception e) {
                 Toast.makeText(this, "Failed to open image file!", Toast.LENGTH_SHORT).show();
             }
-        } else if (requestCode == TAKE_PICTURE_REQUEST && resultCode == Activity.RESULT_OK) {
+        } else if (requestCode == QiscusPermissionsUtil.TAKE_PICTURE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             try {
                 File imageFile = QiscusFileUtil.from(Uri.parse(QiscusCacheManager.getInstance().getLastImagePath()));
                 updateAvatar(imageFile);

@@ -197,29 +197,6 @@ public class QiscusSendPhotoConfirmationActivity extends RxAppCompatActivity imp
         finish();
     }
 
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        getMenuInflater().inflate(R.menu.qiscus_send_photo_action, menu);
-//        return super.onCreateOptionsMenu(menu);
-//    }
-//
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        int i = item.getItemId();
-//        if (i == R.id.action_add_images) {
-//            JupukBuilder jupukBuilder = new JupukBuilder().setMaxCount(10);
-//            for (QiscusPhoto qiscusPhoto : qiscusPhotos) {
-//                Jupuk.getInstance().add(qiscusPhoto.getPhotoFile().getAbsolutePath(), JupukConst.FILE_TYPE_MEDIA);
-//            }
-//            jupukBuilder.enableVideoPicker(true)
-//                    .setColorPrimary(ContextCompat.getColor(this, chatConfig.getAppBarColor()))
-//                    .setColorPrimaryDark(ContextCompat.getColor(this, chatConfig.getStatusBarColor()))
-//                    .setColorAccent(ContextCompat.getColor(this, chatConfig.getAccentColor()))
-//                    .pickPhoto(this);
-//        }
-//        return super.onOptionsItemSelected(item);
-//    }
-
     private void initPhotos() {
         List<QiscusPhotoFragment> fragments = new ArrayList<>();
         for (int i = 0; i < qiscusPhotos.size(); i++) {

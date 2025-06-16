@@ -15,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.request.RequestOptions;
 import com.qiscus.mychatui.R;
 import com.qiscus.mychatui.ui.fragment.ChatRoomFragment;
+import com.qiscus.mychatui.util.QiscusPermissionsUtil;
 import com.qiscus.nirmana.Nirmana;
 import com.qiscus.sdk.chat.core.QiscusCore;
 import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
@@ -27,6 +28,8 @@ import com.qiscus.sdk.chat.core.util.QiscusDateUtil;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
+import java.util.List;
+
 import rx.Observable;
 
 /**
@@ -35,7 +38,8 @@ import rx.Observable;
  * Name       : Zetra
  * GitHub     : https://github.com/zetbaitsu
  */
-public class ChatRoomActivity extends AppCompatActivity implements ChatRoomFragment.UserTypingListener, ChatRoomFragment.CommentSelectedListener {
+public class ChatRoomActivity extends AppCompatActivity implements ChatRoomFragment.UserTypingListener,
+        ChatRoomFragment.CommentSelectedListener, QiscusPermissionsUtil.PermissionCallbacks {
     private static final String CHAT_ROOM_KEY = "extra_chat_room";
 
     private TextView tvSubtitle, tvTitle;
@@ -43,10 +47,11 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatRoomFragm
     private String opponentEmail;
     private ImageButton btn_action_copy, btn_action_delete, btn_action_reply, btn_action_reply_cancel;
     private LinearLayout toolbar_selected_comment;
+    private ChatRoomFragment fragment;
+
     public static Intent generateIntent(Context context, QiscusChatRoom chatRoom) {
-        Intent intent = new Intent(context, ChatRoomActivity.class);
-        intent.putExtra(CHAT_ROOM_KEY, chatRoom);
-        return intent;
+        return new Intent(context, ChatRoomActivity.class)
+                .putExtra(CHAT_ROOM_KEY, chatRoom);
     }
 
     @Override
@@ -78,10 +83,10 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatRoomFragm
                 .load(chatRoom.getAvatarUrl())
                 .into(avatar);
 
+        this.fragment = ChatRoomFragment.newInstance(chatRoom);
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.fragment_container,
-                        ChatRoomFragment.newInstance(chatRoom),
-                        ChatRoomFragment.class.getName())
+                        fragment, ChatRoomFragment.class.getName())
                 .commit();
 
         getOpponentIfNotGroupEmail();
@@ -181,4 +186,23 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatRoomFragm
     public void onClearSelectedComment(Boolean status) {
         toolbar_selected_comment.setVisibility(View.INVISIBLE);
     }
+
+
+    @Override
+    public void onPermissionsGranted(int requestCode, List<String> perms) {
+        if (this.fragment == null) return;
+
+        if (requestCode == QiscusPermissionsUtil.REQUEST_CODE_PICK_FILE) {
+            this.fragment.pickImage();
+        } else if (requestCode == QiscusPermissionsUtil.TAKE_PICTURE_REQUEST_CODE) {
+            this.fragment.openCamera();
+        }
+    }
+
+    @Override
+    public void onPermissionsDenied(int requestCode, List<String> perms) {
+        QiscusPermissionsUtil.checkDeniedPermissionsNeverAskAgain(this, getString(R.string.qiscus_permission_message),
+                R.string.qiscus_grant, R.string.qiscus_denny, perms);
+    }
+
 }

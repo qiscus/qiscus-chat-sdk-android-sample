@@ -15,9 +15,11 @@
  */
 package com.qiscus.mychatui.util;
 
+import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -31,6 +33,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
+import com.qiscus.mychatui.R;
+
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -41,11 +45,34 @@ public final class QiscusPermissionsUtil {
 
     private static final String TAG = "QiscusPermissionsUtil";
 
+    public static final int JUPUK_DOC_PICKER = 18;
+    public static final int PICK_FILE_REQUEST_CODE = 126;
+    public static final int TAKE_PICTURE_REQUEST_CODE = 127;
+    public static final int REQUEST_CODE_OPEN_CAMERA = 128;
+    public static final int REQUEST_CODE_PICK_IMAGE = 129;
+    public static final int REQUEST_CODE_PICK_FILE = 130;
+
+    public static final String[] FILE_PERMISSION = {
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+    };
+    public static final String[] CAMERA_PERMISSION = isAboveOrEqualTiramisuVersion() ?
+            new String[] {
+                    Manifest.permission.CAMERA
+            } : new String[] {
+            Manifest.permission.CAMERA,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+    };
+
     private QiscusPermissionsUtil() {
 
     }
 
     public static boolean hasPermissions(Context context, String... perms) {
+        if (isGrantedByVersion(perms)) {
+            return true;
+        }
         // Always return true for SDK < M, let the system deal with the permissions
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             Log.w(TAG, "hasPermissions: API version < M, returning true by default");
@@ -61,6 +88,16 @@ public final class QiscusPermissionsUtil {
         }
 
         return true;
+    }
+
+    private static boolean isGrantedByVersion(String[] perms) {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.M
+                || (isAboveOrEqualTiramisuVersion()
+                && Arrays.equals(perms, FILE_PERMISSION));
+    }
+
+    private static boolean isAboveOrEqualTiramisuVersion() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU;
     }
 
     public static void requestPermissions(final Object object, String rationale,
@@ -80,25 +117,35 @@ public final class QiscusPermissionsUtil {
         final PermissionCallbacks callbacks = (PermissionCallbacks) object;
 
         boolean shouldShowRationale = false;
-        for (String perm : perms) {
-            shouldShowRationale =
-                    shouldShowRationale || shouldShowRequestPermissionRationale(object, perm);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && requestCode == REQUEST_CODE_PICK_FILE) {
+            shouldShowRationale = true;
+        } else {
+            for (String perm : perms) {
+                shouldShowRationale =
+                        shouldShowRationale || shouldShowRequestPermissionRationale(object, perm);
+            }
         }
 
         if (shouldShowRationale) {
             Activity activity = getActivity(object);
-            if (null == activity) {
-                return;
-            }
+            if (null == activity) return;
 
-            AlertDialog dialog = new AlertDialog.Builder(activity)
+            AlertDialog.Builder dialog = new AlertDialog.Builder(activity)
                     .setMessage(rationale)
-                    .setPositiveButton(positiveButton, (dialog1, which) -> executePermissionsRequest(object, perms, requestCode))
-                    .setNegativeButton(negativeButton, (dialog12, which) -> {
-                        // act as if the permissions were denied
+                    .setNegativeButton(negativeButton, (dialog1, which) ->
+                            executePermissionsRequest(object, perms, requestCode)
+                    )
+                    .setPositiveButton(positiveButton, (dialog12, which) -> {
                         callbacks.onPermissionsDenied(requestCode, Arrays.asList(perms));
-                    }).create();
-            dialog.show();
+                    });
+
+            AlertDialog alert = dialog.create();
+            alert.show();
+
+            alert.getButton(DialogInterface.BUTTON_POSITIVE)
+                    .setTextColor(ContextCompat.getColor(activity, R.color.colorPrimary));
+            alert.getButton(DialogInterface.BUTTON_NEGATIVE)
+                    .setTextColor(ContextCompat.getColor(activity, R.color.colorPrimary));
 
         } else {
             executePermissionsRequest(object, perms, requestCode);

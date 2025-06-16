@@ -22,6 +22,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.qiscus.mychatui.MyApplication;
 import com.qiscus.mychatui.R;
 import com.qiscus.mychatui.presenter.ProfilePresenter;
+import com.qiscus.mychatui.util.ActivityResultHandler;
 import com.qiscus.mychatui.util.QiscusImageUtil;
 import com.qiscus.mychatui.util.QiscusPermissionsUtil;
 import com.qiscus.nirmana.Nirmana;
@@ -33,37 +34,27 @@ import com.qiscus.sdk.chat.core.util.QiscusFileUtil;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 import id.zelory.compressor.Compressor;
 import rx.Subscription;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
 
-public class ProfileActivity extends AppCompatActivity implements ProfilePresenter.View {
-    protected static final int TAKE_PICTURE_REQUEST = 3;
-    protected static final int RC_CAMERA_PERMISSION = 128;
-    private static final int REQUEST_PICK_IMAGE = 1;
-    private static final int REQUEST_FILE_PERMISSION = 2;
-    private static final String[] FILE_PERMISSION = {
-            "android.permission.WRITE_EXTERNAL_STORAGE",
-            "android.permission.READ_EXTERNAL_STORAGE"
-    };
-    private static final String[] CAMERA_PERMISSION = {
-            "android.permission.CAMERA",
-            "android.permission.WRITE_EXTERNAL_STORAGE",
-            "android.permission.READ_EXTERNAL_STORAGE",
-    };
+public class ProfileActivity extends AppCompatActivity implements ProfilePresenter.View,
+        QiscusPermissionsUtil.PermissionCallbacks, ActivityResultHandler.IActivityOnResult {
+
     private LinearLayout logout, llBottom;
     private ImageView ivAvatar, ivEditName, btBack;
     private TextView tvName, tvUniqueID;
     private PopupWindow mPopupWindow;
     private ProfilePresenter profilePresenter;
+    private ActivityResultHandler activityResultHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
-
 
         ivAvatar = findViewById(R.id.ivAvatar);
         ivEditName = findViewById(R.id.ivEditName);
@@ -75,6 +66,8 @@ public class ProfileActivity extends AppCompatActivity implements ProfilePresent
 
         profilePresenter = new ProfilePresenter(this,
                 MyApplication.getInstance().getComponent().getUserRepository());
+        this.activityResultHandler = new ActivityResultHandler(this, this);
+        this.activityResultHandler.registerLauncher();
 
         logout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -114,7 +107,7 @@ public class ProfileActivity extends AppCompatActivity implements ProfilePresent
                     @Override
                     public void onClick(View v) {
                         //gallery
-                        if (QiscusPermissionsUtil.hasPermissions(getApplication(), FILE_PERMISSION)) {
+                        if (QiscusPermissionsUtil.hasPermissions(getApplication(), QiscusPermissionsUtil.FILE_PERMISSION)) {
                             pickImage();
                             mPopupWindow.dismiss();
                         } else {
@@ -127,27 +120,8 @@ public class ProfileActivity extends AppCompatActivity implements ProfilePresent
                     @Override
                     public void onClick(View v) {
                         //camera
-                        if (QiscusPermissionsUtil.hasPermissions(getApplication(), CAMERA_PERMISSION)) {
-                            Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                            if (intent.resolveActivity(getApplication().getPackageManager()) != null) {
-                                File photoFile = null;
-                                try {
-                                    photoFile = QiscusImageUtil.createImageFile();
-                                } catch (IOException ex) {
-                                    Toast.makeText(getApplication(), "Failed to write temporary picture!", Toast.LENGTH_SHORT).show();
-                                }
-
-                                if (photoFile != null) {
-                                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-                                        intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
-                                    } else {
-                                        intent.putExtra(MediaStore.EXTRA_OUTPUT,
-                                                FileProvider.getUriForFile(getApplication(), QiscusCore.getApps().getPackageName() + ".qiscus.sdk.provider", photoFile));
-                                    }
-                                    startActivityForResult(intent, TAKE_PICTURE_REQUEST);
-                                }
-                                mPopupWindow.dismiss();
-                            }
+                        if (QiscusPermissionsUtil.hasPermissions(getApplication(), QiscusPermissionsUtil.CAMERA_PERMISSION)) {
+                           openCamera();
                         } else {
                             requestCameraPermission();
                         }
@@ -189,23 +163,53 @@ public class ProfileActivity extends AppCompatActivity implements ProfilePresent
 
     }
 
+    private void openCamera() {
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (intent.resolveActivity(getApplication().getPackageManager()) != null) {
+            File photoFile = null;
+            try {
+                photoFile = QiscusImageUtil.createImageFile();
+            } catch (IOException ex) {
+                Toast.makeText(
+                        this, "Failed to write temporary picture!", Toast.LENGTH_SHORT
+                ).show();
+            }
+
+            if (photoFile != null) {
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+                    intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
+                } else {
+                    intent.putExtra(MediaStore.EXTRA_OUTPUT, FileProvider.getUriForFile(
+                            this,
+                            QiscusCore.getApps().getPackageName() + ".qiscus.sdk.provider",
+                            photoFile
+                    ));
+                }
+                this.activityResultHandler.setRequestCode(QiscusPermissionsUtil.TAKE_PICTURE_REQUEST_CODE)
+                        .openActivityForResult(intent);
+            }
+            mPopupWindow.dismiss();
+        }
+    }
+
     private void pickImage() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
-        startActivityForResult(intent, REQUEST_PICK_IMAGE);
+        this.activityResultHandler.setRequestCode(QiscusPermissionsUtil.REQUEST_CODE_PICK_IMAGE)
+                .openActivityForResult(intent);
     }
 
     private void requestReadFilePermission() {
-        if (!QiscusPermissionsUtil.hasPermissions(this, FILE_PERMISSION)) {
+        if (!QiscusPermissionsUtil.hasPermissions(this, QiscusPermissionsUtil.FILE_PERMISSION)) {
             QiscusPermissionsUtil.requestPermissions(this, getString(R.string.qiscus_permission_request_title),
-                    REQUEST_FILE_PERMISSION, FILE_PERMISSION);
+                    QiscusPermissionsUtil.REQUEST_CODE_PICK_FILE, QiscusPermissionsUtil.FILE_PERMISSION);
         }
     }
 
     protected void requestCameraPermission() {
-        if (!QiscusPermissionsUtil.hasPermissions(this, CAMERA_PERMISSION)) {
+        if (!QiscusPermissionsUtil.hasPermissions(this, QiscusPermissionsUtil.CAMERA_PERMISSION)) {
             QiscusPermissionsUtil.requestPermissions(this, getString(R.string.qiscus_permission_request_title),
-                    RC_CAMERA_PERMISSION, CAMERA_PERMISSION);
+                    QiscusPermissionsUtil.REQUEST_CODE_OPEN_CAMERA, QiscusPermissionsUtil.CAMERA_PERMISSION);
         }
     }
 
@@ -231,16 +235,15 @@ public class ProfileActivity extends AppCompatActivity implements ProfilePresent
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_PICK_IMAGE && resultCode == Activity.RESULT_OK) {
+    public void handleOnActivityResult(int resultCode, int requestCode, Intent data) {
+        if (requestCode == QiscusPermissionsUtil.REQUEST_CODE_PICK_IMAGE && resultCode == Activity.RESULT_OK) {
             try {
                 File imageFile = QiscusFileUtil.from(data.getData());
                 updateAvatar(imageFile);
             } catch (Exception e) {
                 Toast.makeText(this, "Failed to open image file!", Toast.LENGTH_SHORT).show();
             }
-        } else if (requestCode == TAKE_PICTURE_REQUEST && resultCode == Activity.RESULT_OK) {
+        } else if (requestCode == QiscusPermissionsUtil.TAKE_PICTURE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
             try {
                 File imageFile = QiscusFileUtil.from(Uri.parse(QiscusCacheManager.getInstance().getLastImagePath()));
                 updateAvatar(imageFile);
@@ -301,9 +304,26 @@ public class ProfileActivity extends AppCompatActivity implements ProfilePresent
 
     @Override
     public void logout() {
-        Intent intent = new Intent(ProfileActivity.this, LoginActivity.class);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
+        startActivity(
+                new Intent(ProfileActivity.this, LoginActivity.class)
+                        .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        );
         finish();
+    }
+
+    @Override
+    public void onPermissionsGranted(int requestCode, List<String> perms) {
+        if (requestCode == QiscusPermissionsUtil.REQUEST_CODE_PICK_FILE) {
+            pickImage();
+            mPopupWindow.dismiss();
+        } else if (requestCode == QiscusPermissionsUtil.TAKE_PICTURE_REQUEST_CODE) {
+            openCamera();
+        }
+    }
+
+    @Override
+    public void onPermissionsDenied(int requestCode, List<String> perms) {
+        QiscusPermissionsUtil.checkDeniedPermissionsNeverAskAgain(this, getString(R.string.qiscus_permission_message),
+                R.string.qiscus_grant, R.string.qiscus_denny, perms);
     }
 }

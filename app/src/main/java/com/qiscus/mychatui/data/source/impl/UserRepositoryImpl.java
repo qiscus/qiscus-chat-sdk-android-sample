@@ -72,8 +72,12 @@ public class UserRepositoryImpl implements UserRepository {
     public void getUsers(long page, int limit, String searchUsername, Action<List<User>> onSuccess, Action<Throwable> onError) {
         QiscusApi.getInstance().getUsers(searchUsername, page, limit)
                 .flatMap(Observable::from)
-                .filter(user -> !user.equals(getCurrentUser()))
-                .filter(user -> !user.getUsername().equals(""))
+                .filter(user -> {
+                    return !user.equals(getCurrentUser());
+                })
+                .filter(user -> {
+                    return !user.getUsername().equals("");
+                })
                 .map(this::mapFromQiscusAccount)
                 .toList()
                 .subscribeOn(Schedulers.io())
