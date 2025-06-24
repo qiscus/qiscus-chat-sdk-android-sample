@@ -19,6 +19,7 @@ package com.qiscus.mychatui.presenter;
 import androidx.annotation.CheckResult;
 import androidx.annotation.NonNull;
 
+import com.qiscus.sdk.chat.core.data.model.QiscusComment;
 import com.trello.rxlifecycle.LifecycleTransformer;
 import com.trello.rxlifecycle.RxLifecycle;
 
@@ -63,5 +64,7 @@ public abstract class QiscusPresenter<V extends QiscusPresenter.View> {
         void showLoading();
 
         void dismissLoading();
+
+        void onAiTyping(QiscusComment comment);
     }
 }

@@ -51,6 +51,7 @@ import com.qiscus.sdk.chat.core.data.model.QiscusChatRoom;
 import com.qiscus.sdk.chat.core.data.model.QiscusComment;
 import com.qiscus.sdk.chat.core.data.model.QiscusPhoto;
 import com.qiscus.sdk.chat.core.data.remote.QiscusPusherApi;
+import com.qiscus.sdk.chat.core.event.QiscusChatRoomTypingAIEvent;
 import com.qiscus.sdk.chat.core.util.QiscusFileUtil;
 
 import java.io.File;
@@ -248,7 +249,6 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
         LinearLayoutManager layoutManager = new LinearLayoutManager(activity);
         layoutManager.setReverseLayout(true);
         recyclerView.setLayoutManager(layoutManager);
-        //recyclerView.setHasFixedSize(true);
         recyclerView.addOnScrollListener(new QiscusChatScrollListener(layoutManager, this));
         commentsAdapter = new CommentsAdapter(activity);
         recyclerView.setAdapter(commentsAdapter);
@@ -554,6 +554,12 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
         if (userTypingListener != null) {
             userTypingListener.onUserTyping(user, typing);
         }
+    }
+
+    @Override
+    public void onAiTyping(QiscusComment comment) {
+        if (comment != null) commentsAdapter.addOrUpdate(comment);
+        else commentsAdapter.removeAiTypingComment();
     }
 
     @Override

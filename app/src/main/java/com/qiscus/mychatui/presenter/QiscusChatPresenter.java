@@ -17,6 +17,7 @@ import com.qiscus.sdk.chat.core.data.model.QiscusRoomMember;
 import com.qiscus.sdk.chat.core.data.remote.QiscusApi;
 import com.qiscus.sdk.chat.core.data.remote.QiscusPusherApi;
 import com.qiscus.sdk.chat.core.data.remote.QiscusResendCommentHelper;
+import com.qiscus.sdk.chat.core.event.QiscusChatRoomTypingAIEvent;
 import com.qiscus.sdk.chat.core.event.QiscusClearCommentsEvent;
 import com.qiscus.sdk.chat.core.event.QiscusCommentDeletedEvent;
 import com.qiscus.sdk.chat.core.event.QiscusCommentReceivedEvent;
@@ -24,17 +25,14 @@ import com.qiscus.sdk.chat.core.event.QiscusCommentResendEvent;
 import com.qiscus.sdk.chat.core.event.QiscusMqttStatusEvent;
 import com.qiscus.sdk.chat.core.presenter.QiscusChatRoomEventHandler;
 import com.qiscus.sdk.chat.core.util.QiscusAndroidUtil;
-import com.qiscus.sdk.chat.core.util.QiscusErrorLogger;
 import com.qiscus.sdk.chat.core.util.QiscusFileUtil;
 import com.qiscus.sdk.chat.core.util.QiscusTextUtil;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -42,7 +40,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import id.zelory.compressor.Compressor;
 import retrofit2.HttpException;
 import rx.Observable;
 import rx.Subscription;
@@ -596,6 +593,31 @@ public class QiscusChatPresenter extends QiscusPresenter<QiscusChatPresenter.Vie
                 }
             });
         }
+    }
+
+    @Subscribe
+    public void handleChatRoomTypingAIEvent(QiscusChatRoomTypingAIEvent event) {
+        if (event.getRoomId() != room.getId() || view == null) return;
+        QiscusAndroidUtil.runOnUIThread(() -> {
+            if (!event.isTyping()) {
+                view.onAiTyping(null);
+                return;
+            }
+            final QiscusComment comment = new QiscusComment();
+            comment.setId(-1);
+            comment.setUniqueId("ai-typing-" + 1001);
+            comment.setRoomId(event.getRoomId());
+            comment.setRoomName(room.getName());
+            comment.setSenderEmail(event.getSenderId());
+            comment.setSenderAvatar(room.getAvatarUrl());
+            comment.setSender(event.getSenderName());
+            comment.setMessage(event.getTexttextMessage());
+            comment.setTime(new Date());
+            comment.setState(QiscusComment.STATE_READ);
+            comment.setRawType("custom");
+
+            view.onAiTyping(comment);
+        });
     }
 
     private void onGotNewComment(QiscusComment qiscusComment) {

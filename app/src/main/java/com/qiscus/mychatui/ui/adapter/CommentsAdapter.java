@@ -1,5 +1,6 @@
 package com.qiscus.mychatui.ui.adapter;
 
+import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.net.Uri;
@@ -7,6 +8,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.text.Spannable;
 import android.text.SpannableString;
+import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.ClickableSpan;
 import android.util.Log;
@@ -30,6 +32,7 @@ import com.qiscus.mychatui.ui.view.QiscusProgressView;
 import com.qiscus.mychatui.util.CustomDownloaderFileUtils;
 import com.qiscus.mychatui.util.DateUtil;
 import com.qiscus.mychatui.util.QiscusImageUtil;
+import com.qiscus.mychatui.util.TranslateYSpan;
 import com.qiscus.nirmana.Nirmana;
 import com.qiscus.sdk.chat.core.QiscusCore;
 import com.qiscus.sdk.chat.core.data.model.QiscusAccount;
@@ -65,6 +68,7 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
     private static final int TYPE_OPPONENT_FILE = 6;
     private static final int TYPE_MY_REPLY = 7;
     private static final int TYPE_OPPONENT_REPLY = 8;
+    private static final int TYPE_AI_TEXT = 9;
 
     private Context context;
     private long lastDeliveredCommentId;
@@ -117,6 +121,8 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
                 return comment.isMyComment() ? TYPE_MY_FILE : TYPE_OPPONENT_FILE;
             case REPLY:
                 return comment.isMyComment() ? TYPE_MY_REPLY : TYPE_OPPONENT_REPLY;
+            case CUSTOM:
+                return TYPE_AI_TEXT;
             default:
                 return comment.isMyComment() ? TYPE_MY_TEXT : TYPE_OPPONENT_TEXT;
         }
@@ -137,6 +143,8 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
             case TYPE_MY_REPLY:
             case TYPE_OPPONENT_REPLY:
                 return new ReplyVH(getView(parent, viewType));
+            case TYPE_AI_TEXT:
+                return new AITextVH(getView(parent, viewType));
             default:
                 return new TextVH(getView(parent, viewType));
         }
@@ -179,18 +187,6 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
         setOnClickListener(holder.itemView, position);
     }
 
-    public void addOrUpdate(List<QiscusComment> comments) {
-        for (QiscusComment comment : comments) {
-            int index = findPosition(comment);
-            if (index == -1) {
-                getData().add(comment);
-            } else {
-                getData().updateItemAt(index, comment);
-            }
-        }
-        notifyDataSetChanged();
-    }
-
     public QiscusComment getSelectedComment() {
         return selectedComment;
     }
@@ -199,13 +195,20 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
         this.selectedComment = comment;
     }
 
+    public void addOrUpdate(List<QiscusComment> comments) {
+        int index;
+        for (QiscusComment comment : comments) {
+            index = findPosition(comment);
+            if (index == -1) getData().add(comment);
+            else getData().updateItemAt(index, comment);
+        }
+        notifyDataSetChanged();
+    }
+
     public void addOrUpdate(QiscusComment comment) {
         int index = findPosition(comment);
-        if (index == -1) {
-            getData().add(comment);
-        } else {
-            getData().updateItemAt(index, comment);
-        }
+        if (index == -1) getData().add(comment);
+        else getData().updateItemAt(index, comment);
         notifyDataSetChanged();
     }
 
@@ -222,6 +225,22 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
     public void remove(QiscusComment comment) {
         getData().remove(comment);
         notifyDataSetChanged();
+    }
+
+    public void removeAiTypingComment() {
+        final int size = getData().size();
+        if (size == 0) return;
+
+        final String aiuniqueId = "ai-typing-" + 1001;
+        QiscusComment comment;
+        for (int i = 0; i < size; i++) {
+            comment = getData().get(i);
+            if (comment.getUniqueId().equals(aiuniqueId)) {
+                getData().removeItemAt(i);
+                notifyDataSetChanged();
+                return;
+            }
+        }
     }
 
     public QiscusComment getLatestSentComment() {
@@ -361,9 +380,10 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
     }
 
     static class TextVH extends VH {
-        private TextView message;
+        protected TextView message;
         private TextView sender;
         private TextView dateOfMessage;
+        protected boolean isSetMessage = true;
 
         TextVH(View itemView) {
             super(itemView);
@@ -375,7 +395,7 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
         @Override
         void bind(QiscusComment comment) {
             super.bind(comment);
-            message.setText(comment.getMessage());
+            if (isSetMessage) message.setText(comment.getMessage());
             QiscusChatRoom chatRoom = QiscusCore.getDataStore().getChatRoom(comment.getRoomId());
 
             if (sender != null && chatRoom != null) {
@@ -402,6 +422,81 @@ public class CommentsAdapter extends SortedRecyclerViewAdapter<QiscusComment, Co
                     dateOfMessage.setVisibility(View.GONE);
                 }
             }
+        }
+    }
+
+    static class AITextVH extends TextVH {
+        private int frame = 0;
+        private  ValueAnimator animator;
+
+        AITextVH(View itemView) {
+            super(itemView);
+            this.isSetMessage = false;
+        }
+
+        @SuppressLint("Recycle")
+        @Override
+        void bind(QiscusComment comment) {
+            super.bind(comment);
+            final String textMessage = comment.getMessage();
+            final boolean isStarting = textMessage.equals("...");
+
+            final int textLength = textMessage.length();
+            final long delay = 33L;
+
+            if (animator != null && animator.isRunning()) {
+                animator.cancel();
+            }
+
+            int from;
+            if (!isStarting
+                    && this.message.getText() != null
+                    && this.message.getText().length() > 0
+                    && textMessage.contains(this.message.getText().toString())
+            ) {
+                from = this.message.getText().length() -1 ;
+            } else {
+                from = 0;
+            }
+
+            animator = ValueAnimator.ofInt(from, textLength);
+            animator.setDuration(delay * textLength);
+            animator.setRepeatCount(isStarting ? ValueAnimator.INFINITE : 0);
+            animator.addUpdateListener(animation -> {
+                if (isStarting) animateDots();
+                else animatedSetText(from, textMessage, animation);
+            });
+            animator.start();
+        }
+
+        @SuppressLint("SetTextI18n")
+        private void animatedSetText(int from, String textMessage, ValueAnimator animation) {
+            this.message.setText(
+                    textMessage.substring(0, from)
+                    + textMessage.substring(from, (int) animation.getAnimatedValue())
+            );
+        }
+
+        private void animateDots() {
+            frame++;
+            SpannableStringBuilder builder = new SpannableStringBuilder("● ● ●");
+            for (int i = 0; i < 3; i++) {
+                int charIndex = i * 2;
+                int offset = getVerticalOffset(frame + i * 10);
+                builder.setSpan(
+                        new TranslateYSpan(offset),
+                        charIndex,
+                        charIndex + 1,
+                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+                );
+            }
+            this.message.setText(builder);
+        }
+
+        private int getVerticalOffset(int frame) {
+            double amplitude = 10;
+            double frequency = 0.2;
+            return (int) (Math.sin(frame * frequency) * amplitude);
         }
     }
 
