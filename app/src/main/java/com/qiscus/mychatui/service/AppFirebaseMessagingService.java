@@ -55,6 +55,28 @@ public class AppFirebaseMessagingService extends FirebaseMessagingService {
     }
 
     public static void registerDeviceToken() {
+        if (!Const.qiscusCore1().hasSetupUser()) {
+            Log.d(TAG,"need setup user");
+            return;
+        }
+
+        final String token = Const.qiscusCore1().getFcmToken();
+        if (token != null) {
+            FirebaseMessaging.getInstance().deleteToken()
+                    .addOnCompleteListener(task -> {
+                        Const.qiscusCore1().removeDeviceToken(token);
+                        getTokenFCM();
+                    })
+                    .addOnFailureListener(e -> Const.qiscusCore1().registerDeviceToken(token));
+        } else {
+            getTokenFCM();
+        }
+
+
+
+    }
+
+    public static void getTokenFCM(){
         FirebaseMessaging.getInstance().getToken()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && task.getResult() != null) {
@@ -67,7 +89,7 @@ public class AppFirebaseMessagingService extends FirebaseMessagingService {
 
                         Const.qiscusCore1().registerDeviceToken(currentToken);
                         Const.qiscusCore2().registerDeviceToken(currentToken);
-    
+
                         Log.i(TAG, "registerDeviceToken : " + currentToken);
                     }
                 });

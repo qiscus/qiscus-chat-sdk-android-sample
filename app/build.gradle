@@ -2,12 +2,12 @@ apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 
 android {
-    compileSdkVersion 31
+    compileSdkVersion 35
     viewBinding.enabled = true
     defaultConfig {
         applicationId "com.qiscus.mychatui"
-        minSdkVersion 16
-        targetSdkVersion 31
+        minSdkVersion 21
+        targetSdkVersion 35
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
@@ -28,6 +28,9 @@ android {
             it.buildConfigField("String", "QISCUS_SDK_APP_ID2", QISCUS_SDK_APP_ID2)
         }
     }
+    buildFeatures {
+        buildConfig = true
+    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -40,14 +43,16 @@ android {
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/rxjava.properties'
     }
+
+    namespace 'com.qiscus.mychatui'
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'id.zelory:compressor:2.1.0'
+    implementation 'id.zelory:compressor:2.1.1'
     implementation 'androidx.multidex:multidex:2.0.0'
-    implementation 'com.qiscus.sdk:chat-core:3.0.0-beta.23'
-//    implementation project(':chat-core')
+    implementation 'com.qiscus.sdk:chat-core:3.0.0-beta.33'
+    //implementation project(':chat-core')
 
     implementation 'com.qiscus.utils:nirmana:1.2.1'
     implementation 'com.qiscus.utils:jupuk:1.5.1'
@@ -66,10 +71,10 @@ dependencies {
     /**
      * Firebase
      */
-    implementation 'com.google.firebase:firebase-core:19.0.0'
-    implementation 'com.google.firebase:firebase-messaging:22.0.0'
+    implementation 'com.google.firebase:firebase-core:21.1.1'
+    implementation 'com.google.firebase:firebase-messaging:23.1.1'
 
-    implementation 'com.squareup.okhttp3:okhttp:3.12.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.10.0'
     implementation 'com.squareup.retrofit2:retrofit:2.5.0'
 
     /**

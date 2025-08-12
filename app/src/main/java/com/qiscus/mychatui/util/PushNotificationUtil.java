@@ -70,7 +70,7 @@ public final class PushNotificationUtil {
                 .setContentIntent(pendingIntent)
                 .setContentText(qiscusComment.getText())
                 .setTicker(qiscusComment.getText())
-                .setSmallIcon(R.drawable.ic_jupuk_play_icon)
+                .setSmallIcon(R.drawable.ic_qiscus_avatar)
                 .setColor(ContextCompat.getColor(context, R.color.colorAccent))
                 .setGroup("CHAT_NOTIF_" + qiscusComment.getChatRoomId())
                 .setAutoCancel(true)

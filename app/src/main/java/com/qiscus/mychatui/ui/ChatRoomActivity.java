@@ -141,6 +141,9 @@ public class ChatRoomActivity extends AppCompatActivity implements ChatRoomFragm
 
     @Override
     public void onUserTyping(String user, boolean typing) {
+        if (user.equals(Const.qiscusCore().getQiscusAccount().getName().toLowerCase())){
+            return;
+        }
         tvSubtitle.setText(typing ? "Typing..." : "Online");
         tvSubtitle.setVisibility(View.VISIBLE);
     }

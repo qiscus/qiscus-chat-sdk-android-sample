@@ -34,6 +34,7 @@ public class LoginActivityAppId2 extends AppCompatActivity implements LoginPrese
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        Const.setQiscusCore(Const.qiscusCore2());
 
         userId = findViewById(R.id.et_user_id);
         password = findViewById(R.id.et_password);
@@ -63,8 +64,6 @@ public class LoginActivityAppId2 extends AppCompatActivity implements LoginPrese
                 );
             }
         });
-
-        Const.setQiscusCore(Const.qiscusCore2());
     }
 
     @Override

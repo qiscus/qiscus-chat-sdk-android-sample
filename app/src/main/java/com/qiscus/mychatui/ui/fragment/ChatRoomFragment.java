@@ -139,7 +139,10 @@ public class ChatRoomFragment extends Fragment implements QiscusChatPresenter.Vi
         chatRoom = getArguments().getParcelable(CHAT_ROOM_KEY);
 
         input_finish_checker = () -> {
-            Const.qiscusCore().getPusherApi().publishTyping(chatRoom.getId(),false);
+            if (chatRoom != null && chatRoom.getId() != 0) {
+                Const.qiscusCore().getPusherApi().publishTyping(chatRoom.getId(),false);
+            }
+
         };
 
         if (chatRoom == null) {
