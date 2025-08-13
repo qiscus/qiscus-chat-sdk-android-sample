@@ -31,13 +31,13 @@
 -dontnote rx.internal.util.PlatformDependent
 
 #Retrofit 2
--dontwarn retrofit2.**
--keep class retrofit2.** { *; }
--keepattributes Signature
--keepattributes Exceptions
--keepclasseswithmembers class * {
-    @retrofit2.http.* <methods>;
-}
+#-dontwarn retrofit2.**
+#-keep class retrofit2.** { *; }
+#-keepattributes Signature
+#-keepattributes Exceptions
+#-keepclasseswithmembers class * {
+#    @retrofit2.http.* <methods>;
+#}
 
 #Okio
 -dontwarn okio.**
@@ -96,3 +96,18 @@
 -keep class org.eclipse.paho.client.mqttv3.logging.JSR47Logger {
     *;
 }
+
+
+# With R8 full mode generic signatures are stripped for classes that are not
+# kept. Suspend functions are wrapped in continuations where the type argument
+# is used.
+-keep,allowobfuscation,allowshrinking class kotlin.coroutines.Continuation
+-keep,allowobfuscation,allowshrinking interface retrofit2.Call
+-keep,allowobfuscation,allowshrinking class retrofit2.Response
+
+# R8 full mode strips generic signatures from return types if not kept.
+-if interface * { @retrofit2.http.* public *** *(...); }
+-keep,allowoptimization,allowshrinking,allowobfuscation class <3>
+
+-keep class com.qiscus.sdk.chat.core.** { *; }
+-keep interface com.qiscus.sdk.chat.core.** { *; }
